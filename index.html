@@ -1,0 +1,3349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>K-IDOL Brain Puzzle</title>
+<meta name="theme-color" content="#0A1931">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="images/dance-icon.png">
+<meta property="og:title" content="K-IDOL BRAIN PUZZLE">
+<meta property="og:description" content="나만의 아이돌을 데뷔시켜라! 두뇌 트레이닝 리듬 퍼즐 게임">
+<meta property="og:image" content="images/dance-icon.png">
+<meta property="og:type" content="website">
+<!-- [여기에 구글 애드센스 자동 광고 스크립트를 복사해서 붙여넣으세요] -->
+<!-- 예시: <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-123456789" crossorigin="anonymous"></script> -->
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A1931;--navy2:#061022;--navy3:#0d1f40;
+  --orange:#FF6B00;--cyan:#00FFFF;--gold:#FFD700;--gray:#CCCCCC;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
+  height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-tap-highlight-color:transparent}
+#app{width:100%;max-width:480px;height:100vh;position:relative;overflow:hidden}
+
+/* BG */
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,255,255,.03)1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,255,255,.03)1px,transparent 1px);
+  background-size:40px 40px}
+.bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star-dot{position:absolute;border-radius:50%;animation:twinkle var(--dur,2s) infinite alternate}
+@keyframes twinkle{from{opacity:.1;transform:scale(.7)}to{opacity:.85;transform:scale(1.5)}}
+
+/* Flash overlays */
+.flash{position:fixed;inset:0;pointer-events:none;z-index:50;transition:background .06s}
+.gold-burst{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:0}
+.gold-burst.active{animation:burst-in 1.4s ease-out forwards}
+@keyframes burst-in{
+  0%{opacity:0}10%{opacity:1;background:radial-gradient(circle,rgba(255,215,0,.55)0%,transparent 65%)}
+  60%{opacity:1;background:radial-gradient(circle,rgba(255,215,0,.2)0%,transparent 65%)}100%{opacity:0}}
+.burst-particle{position:fixed;pointer-events:none;z-index:210;
+  animation:bpfly var(--dur,.9s) ease-out forwards}
+@keyframes bpfly{from{opacity:1;transform:translate(0,0)scale(1.2)}
+  to{opacity:0;transform:translate(var(--tx,0),var(--ty,-80px))scale(0)}}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;padding-bottom:80px;z-index:1}
+.screen.active{display:flex}
+
+/* ── TITLE ── */
+#screen-title{background:linear-gradient(170deg,#0d1e3a,var(--navy2));text-align:center;gap:0}
+.title-idol{font-size:5rem;animation:idol-float 3s ease-in-out infinite;margin-bottom:10px;
+  filter:drop-shadow(0 0 20px rgba(0,255,255,.4))}
+@keyframes idol-float{0%,100%{transform:translateY(0)rotate(-2deg)}50%{transform:translateY(-16px)rotate(2deg)}}
+.title-logo{font-family:'Bebas Neue',sans-serif;font-size:3.4rem;line-height:.95;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--orange),var(--gold),var(--orange));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 16px rgba(255,107,0,.6));margin-bottom:6px;
+  animation:logo-glow 2.5s ease-in-out infinite}
+@keyframes logo-glow{0%,100%{filter:drop-shadow(0 0 14px rgba(255,107,0,.5))}
+  50%{filter:drop-shadow(0 0 28px rgba(255,215,0,.7))}}
+.title-sub{font-size:.75rem;color:var(--cyan);letter-spacing:5px;margin-bottom:30px;
+  text-shadow:0 0 10px rgba(0,255,255,.5)}
+.title-btns{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+
+/* ── BUTTONS ── */
+.btn{display:block;width:100%;max-width:280px;padding:13px 24px;border:none;border-radius:3px;
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;
+  cursor:pointer;transition:transform .1s,box-shadow .15s;
+  clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px)100%,0% 100%)}
+.btn:active{transform:scale(.93)!important}
+.btn-primary{background:linear-gradient(90deg,var(--orange),#ff9500);color:#fff;
+  box-shadow:0 4px 24px rgba(255,107,0,.45)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,107,0,.6)}
+.btn-secondary{background:transparent;color:var(--cyan);border:1px solid var(--cyan);
+  box-shadow:0 0 10px rgba(0,255,255,.15)}
+.btn-secondary:hover{background:rgba(0,255,255,.08);box-shadow:0 0 20px rgba(0,255,255,.3)}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--gray);
+  border:1px solid rgba(255,255,255,.12);font-size:.9rem;padding:9px 20px}
+
+.screen-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;
+  color:var(--cyan);text-shadow:0 0 14px rgba(0,255,255,.5);margin-bottom:6px;text-align:center}
+.screen-sub{font-size:.82rem;color:var(--gray);margin-bottom:22px;text-align:center}
+
+/* ── GENRE SELECT ── */
+#screen-genre{background:linear-gradient(170deg,#0d1e3a,var(--navy2));gap:0}
+.genre-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;margin-bottom:18px}
+.genre-card{display:flex;align-items:center;gap:16px;padding:16px 18px;
+  background:rgba(6,16,34,.9);border-left:4px solid transparent;
+  cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.genre-card::after{content:'→';position:absolute;right:16px;font-size:1.2rem;
+  color:rgba(255,255,255,.2);transition:all .18s}
+.genre-card:hover::after{right:10px;color:rgba(255,255,255,.6)}
+.genre-card[data-g="dance"]{border-left-color:var(--orange)}
+.genre-card[data-g="vocal"]{border-left-color:var(--cyan)}
+.genre-card[data-g="rapper"]{border-left-color:var(--gold)}
+.genre-card[data-g="dance"]:hover{background:rgba(255,107,0,.08);box-shadow:0 0 16px rgba(255,107,0,.2)}
+.genre-card[data-g="vocal"]:hover{background:rgba(0,255,255,.06);box-shadow:0 0 16px rgba(0,255,255,.2)}
+.genre-card[data-g="rapper"]:hover{background:rgba(255,215,0,.07);box-shadow:0 0 16px rgba(255,215,0,.2)}
+.genre-card.selected[data-g="dance"]{background:rgba(255,107,0,.14);box-shadow:0 0 24px rgba(255,107,0,.3)}
+.genre-card.selected[data-g="vocal"]{background:rgba(0,255,255,.1);box-shadow:0 0 24px rgba(0,255,255,.25)}
+.genre-card.selected[data-g="rapper"]{background:rgba(255,215,0,.1);box-shadow:0 0 24px rgba(255,215,0,.25)}
+.genre-icon-big{font-size:2.8rem;min-width:70px;text-align:center;display:flex;align-items:center;justify-content:center}
+.genre-icon-big img{width:70px;height:70px;object-fit:contain;
+  filter:drop-shadow(0 0 10px rgba(255,255,255,.15));transition:filter .18s}
+.genre-card[data-g="dance"]:hover .genre-icon-big img{filter:drop-shadow(0 0 14px rgba(255,107,0,.6))}
+.genre-card[data-g="vocal"]:hover .genre-icon-big img{filter:drop-shadow(0 0 14px rgba(0,255,255,.6))}
+.genre-card[data-g="rapper"]:hover .genre-icon-big img{filter:drop-shadow(0 0 14px rgba(255,215,0,.6))}
+.genre-info{flex:1}
+.genre-name-big{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:2px}
+.genre-desc-txt{font-size:.75rem;color:var(--gray)}
+.genre-tag{display:inline-block;font-size:.65rem;letter-spacing:1px;padding:2px 8px;
+  border-radius:20px;margin-top:4px;font-family:'Bebas Neue',sans-serif}
+.genre-card[data-g="dance"] .genre-tag{background:rgba(255,107,0,.2);color:var(--orange);border:1px solid rgba(255,107,0,.4)}
+.genre-card[data-g="vocal"] .genre-tag{background:rgba(0,255,255,.15);color:var(--cyan);border:1px solid rgba(0,255,255,.35)}
+.genre-card[data-g="rapper"] .genre-tag{background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.35)}
+.genre-card[data-g="dance"] .genre-name-big{color:var(--orange)}
+.genre-card[data-g="vocal"] .genre-name-big{color:var(--cyan)}
+.genre-card[data-g="rapper"] .genre-name-big{color:var(--gold)}
+
+/* ── CHAR SELECT / PROFILE CREATE ── */
+#screen-char{background:linear-gradient(170deg,#0d1e3a,var(--navy2));gap:0}
+#screen-profile{background:linear-gradient(170deg,#0d1e3a,var(--navy2));gap:0}
+.prof-gender-label,.prof-name-label{
+  font-size:.7rem;color:var(--cyan);letter-spacing:3px;
+  width:100%;max-width:296px;margin-bottom:8px;text-align:left}
+.idol-name-input{
+  width:100%;max-width:280px;padding:12px 16px;
+  background:rgba(6,16,34,.9);border:1px solid rgba(0,255,255,.25);
+  color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .18s,box-shadow .18s;
+  clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px)100%,0% 100%)}
+.idol-name-input:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,255,255,.3)}
+.idol-name-input::placeholder{color:rgba(255,255,255,.28);font-size:.78rem}
+.char-grid{display:flex;gap:18px;justify-content:center;margin-bottom:28px}
+.char-card{width:138px;padding:22px 14px;border-radius:2px;
+  background:rgba(10,25,49,.8);border:1px solid rgba(0,255,255,.2);
+  cursor:pointer;text-align:center;
+  clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px)100%,0% 100%);transition:all .18s}
+.char-card:hover{border-color:var(--cyan);background:rgba(0,255,255,.07);transform:translateY(-5px)}
+.char-card.selected{border-color:var(--orange);background:rgba(255,107,0,.1);
+  box-shadow:0 0 28px rgba(255,107,0,.3)}
+.char-avatar{font-size:3.6rem;margin-bottom:10px;display:flex;justify-content:center}
+.char-portrait{
+  background-size:cover;
+  background-repeat:no-repeat;
+  background-position:center top;
+}
+.char-portrait.girl{background-image:url('images/characters-girl.png')}
+.char-portrait.boy {background-image:url('images/characters-boy.png')}
+.char-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:#fff;margin-bottom:6px}
+.char-stat{font-size:.7rem;color:var(--gray);line-height:1.8}
+
+/* ── STAGE MAP ── */
+#screen-stages{background:linear-gradient(170deg,#0a1728,var(--navy2));
+  overflow-y:auto;justify-content:flex-start;padding-top:14px;padding-bottom:80px}
+.stage-hero{display:flex;flex-direction:column;align-items:center;margin-bottom:8px;margin-top:4px}
+.stage-hero-idol{font-size:3rem;animation:idol-float 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 14px rgba(0,255,255,.35))}
+.stage-hero-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:3px;
+  color:var(--orange);margin-top:3px;text-shadow:0 0 10px rgba(255,107,0,.4)}
+.genre-badge{font-family:'Bebas Neue',sans-serif;font-size:.75rem;letter-spacing:2px;
+  padding:3px 12px;border-radius:20px;margin-top:4px}
+.genre-badge.dance{background:rgba(255,107,0,.2);color:var(--orange);border:1px solid rgba(255,107,0,.4)}
+.genre-badge.vocal{background:rgba(0,255,255,.15);color:var(--cyan);border:1px solid rgba(0,255,255,.35)}
+.genre-badge.rapper{background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.35)}
+
+.growth-row{width:100%;max-width:360px;margin-bottom:12px}
+.growth-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--gray);margin-bottom:5px}
+.growth-track{height:8px;background:rgba(255,255,255,.06);border:1px solid rgba(0,255,255,.15);overflow:visible;position:relative}
+.growth-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--orange),var(--gold));
+  transition:width 1s cubic-bezier(.4,0,.2,1);position:relative;box-shadow:0 0 12px rgba(255,107,0,.5)}
+.growth-fill::after{content:'';position:absolute;right:-2px;top:-3px;width:6px;height:14px;
+  background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+.stage-list{width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.stage-item{display:flex;align-items:center;gap:14px;padding:12px 14px;
+  background:rgba(6,16,34,.8);border-left:3px solid transparent;
+  transition:all .18s;position:relative;overflow:hidden}
+.stage-item.unlocked{cursor:pointer}
+.stage-item.unlocked:hover{transform:translateX(5px)}
+.stage-item.locked{opacity:.3;cursor:not-allowed}
+.stage-item[data-lv="0"]{border-left-color:rgba(204,204,204,.4)}
+.stage-item[data-lv="1"]{border-left-color:rgba(0,255,255,.5)}
+.stage-item[data-lv="1"].unlocked{box-shadow:0 0 10px rgba(0,255,255,.08)}
+.stage-item[data-lv="2"]{border-left-color:var(--cyan)}
+.stage-item[data-lv="2"].unlocked{box-shadow:0 0 12px rgba(0,255,255,.14)}
+.stage-item[data-lv="3"]{border-left-color:var(--orange)}
+.stage-item[data-lv="3"].unlocked{box-shadow:0 0 14px rgba(255,107,0,.2)}
+.stage-item[data-lv="4"]{border-left-color:var(--gold)}
+.stage-item[data-lv="4"].unlocked{animation:gold-pulse 2s ease-in-out infinite}
+@keyframes gold-pulse{0%,100%{box-shadow:0 0 16px rgba(255,215,0,.2)}50%{box-shadow:0 0 30px rgba(255,215,0,.4)}}
+.stage-icon{font-size:2rem;min-width:44px;text-align:center}
+.stage-info{flex:1}
+.stage-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:#fff;margin-bottom:2px}
+.stage-desc{font-size:.7rem;color:var(--gray)}
+.stage-need{font-size:.66rem;color:rgba(204,204,204,.45);margin-top:2px}
+.stage-stars{font-size:1rem;letter-spacing:2px}
+.sf{color:var(--gold);text-shadow:0 0 6px rgba(255,215,0,.6)}
+.se{color:rgba(255,255,255,.15)}
+.map-footer{display:flex;gap:8px;width:100%;max-width:360px;margin-bottom:18px}
+.map-footer .btn{flex:1}
+
+/* ── PUZZLE ── */
+#screen-puzzle{background:linear-gradient(170deg,#091525,var(--navy2));
+  justify-content:space-between;padding:12px 16px}
+.pz-header{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:400px}
+.pz-stage-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;
+  color:var(--cyan);text-shadow:0 0 8px rgba(0,255,255,.4)}
+.pz-score{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;
+  color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,.5)}
+.pz-quit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:rgba(204,204,204,.6);padding:5px 12px;border-radius:2px;cursor:pointer;font-size:.75rem;
+  font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.pz-quit:hover{color:#fff}
+.beat-track{width:100%;max-width:400px;height:3px;background:rgba(255,255,255,.07);margin:5px 0;position:relative}
+.beat-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--orange));
+  box-shadow:0 0 8px var(--orange);transition:width .1s linear}
+.beat-fill.gold{background:linear-gradient(90deg,var(--orange),var(--gold));box-shadow:0 0 8px var(--gold)}
+
+.phase-box{text-align:center;min-height:60px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.phase-label{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:6px;
+  animation:phase-pop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes phase-pop{from{transform:scale(1.4);opacity:.4}to{transform:scale(1);opacity:1}}
+.phase-watch  {color:var(--cyan);  text-shadow:0 0 16px rgba(0,255,255,.7)}
+.phase-perform{color:var(--orange);text-shadow:0 0 16px rgba(255,107,0,.7)}
+.phase-listen {color:var(--cyan);  text-shadow:0 0 16px rgba(0,255,255,.7)}
+.phase-sing   {color:#a855f7;      text-shadow:0 0 16px rgba(168,85,247,.7)}
+.phase-ready  {color:var(--gold);  text-shadow:0 0 16px rgba(255,215,0,.7)}
+.phase-go     {color:var(--gold);  text-shadow:0 0 20px rgba(255,215,0,.9);font-size:2.8rem}
+.phase-hint{font-size:.76rem;color:var(--gray);margin-top:3px}
+
+/* Tile grids */
+.tile-grid{display:grid;gap:8px;margin:0 auto;width:100%}
+.tile-grid.dance{grid-template-columns:repeat(4,1fr);max-width:340px}
+.tile-grid.vocal{grid-template-columns:repeat(2,1fr);max-width:270px;gap:14px}
+.tile-grid.rapper{grid-template-columns:repeat(3,1fr);max-width:300px}
+
+.tile{aspect-ratio:1;background:rgba(10,25,49,.9);border:1px solid rgba(0,255,255,.12);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:1.5rem;cursor:pointer;transition:transform .08s,border-color .08s,box-shadow .08s;
+  position:relative;overflow:hidden;
+  clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px)100%,0% 100%)}
+.tile:active{transform:scale(.88)}
+
+/* Dance: cyan watch, orange perform */
+.tile-grid.dance .tile.lit{
+  background:rgba(0,255,255,.15);border-color:var(--cyan);transform:scale(1.06);
+  box-shadow:0 0 16px rgba(0,255,255,.8),0 0 32px rgba(0,255,255,.4),inset 0 0 12px rgba(0,255,255,.25)}
+.tile-grid.dance .tile.correct{
+  background:rgba(255,107,0,.2);border-color:var(--orange);transform:scale(1.08);
+  box-shadow:0 0 18px rgba(255,107,0,.7),inset 0 0 8px rgba(255,107,0,.2)}
+
+/* Vocal: per-note colors */
+.note-name{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:1px;
+  color:rgba(255,255,255,.55);margin-top:2px}
+.tile-grid.vocal .tile{font-size:2rem}
+.tile.nd{border-color:rgba(59,130,246,.3)}
+.tile.nr{border-color:rgba(34,197,94,.3)}
+.tile.nm{border-color:rgba(234,179,8,.3)}
+.tile.nf{border-color:rgba(239,68,68,.3)}
+.tile.nd.lit{background:rgba(59,130,246,.25);border-color:#3b82f6;transform:scale(1.07);
+  box-shadow:0 0 20px rgba(59,130,246,.8),inset 0 0 12px rgba(59,130,246,.25)}
+.tile.nr.lit{background:rgba(34,197,94,.25); border-color:#22c55e;transform:scale(1.07);
+  box-shadow:0 0 20px rgba(34,197,94,.8),inset 0 0 12px rgba(34,197,94,.25)}
+.tile.nm.lit{background:rgba(234,179,8,.25); border-color:#eab308;transform:scale(1.07);
+  box-shadow:0 0 20px rgba(234,179,8,.8),inset 0 0 12px rgba(234,179,8,.25)}
+.tile.nf.lit{background:rgba(239,68,68,.25); border-color:#ef4444;transform:scale(1.07);
+  box-shadow:0 0 20px rgba(239,68,68,.8),inset 0 0 12px rgba(239,68,68,.25)}
+.tile.nd.correct,.tile.nr.correct,.tile.nm.correct,.tile.nf.correct{
+  background:rgba(168,85,247,.25);border-color:#a855f7;transform:scale(1.08);
+  box-shadow:0 0 18px rgba(168,85,247,.7)}
+
+/* Rapper: gold lit */
+.tile-grid.rapper .tile.lit{
+  background:rgba(255,215,0,.2);border-color:var(--gold);transform:scale(1.07);
+  box-shadow:0 0 20px rgba(255,215,0,.8),0 0 40px rgba(255,215,0,.35),inset 0 0 12px rgba(255,215,0,.2)}
+.tile-grid.rapper .tile.correct{
+  background:rgba(255,107,0,.2);border-color:var(--orange);transform:scale(1.08);
+  box-shadow:0 0 18px rgba(255,107,0,.7)}
+
+/* Wrong — all genres */
+.tile.wrong{background:rgba(239,68,68,.2);border-color:#ef4444;
+  box-shadow:0 0 18px rgba(239,68,68,.6);animation:shake .28s ease-out}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* Rapper beat indicator */
+.rapper-beats{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;max-width:300px;margin:2px auto}
+.beat-dot{width:8px;height:8px;background:rgba(255,255,255,.15);
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transition:all .2s}
+.beat-dot.hit{background:var(--orange);box-shadow:0 0 6px var(--orange)}
+.beat-dot.miss{background:rgba(239,68,68,.6)}
+
+.combo-display{text-align:center;min-height:30px;font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;letter-spacing:3px;color:var(--gold);text-shadow:0 0 12px rgba(255,215,0,.6)}
+.combo-display.pop{animation:combo-pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes combo-pop{from{transform:scale(1.6);opacity:.5}to{transform:scale(1);opacity:1}}
+
+.round-dots{display:flex;gap:12px;justify-content:center}
+.round-dot{width:10px;height:10px;background:rgba(255,255,255,.1);
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);transition:all .3s}
+.round-dot.done{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.round-dot.current{background:var(--orange);box-shadow:0 0 10px var(--orange);
+  animation:dot-beat .6s ease-in-out infinite}
+@keyframes dot-beat{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+
+/* ── RESULT ── */
+#screen-result{background:linear-gradient(170deg,#0d1e3a,var(--navy2));text-align:center;gap:0}
+.result-idol{font-size:4rem;margin-bottom:8px;animation:idol-float 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 18px rgba(0,255,255,.4))}
+.result-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;
+  color:var(--orange);text-shadow:0 0 16px rgba(255,107,0,.5);margin-bottom:12px}
+.result-stars{display:flex;gap:14px;justify-content:center;margin-bottom:12px}
+.result-star{font-size:2.8rem;animation:star-drop .45s cubic-bezier(.34,1.56,.64,1) backwards;
+  filter:drop-shadow(0 0 8px rgba(255,215,0,.7))}
+.result-star:nth-child(1){animation-delay:.08s}
+.result-star:nth-child(2){animation-delay:.24s}
+.result-star:nth-child(3){animation-delay:.42s}
+@keyframes star-drop{from{transform:translateY(-40px)scale(0)rotate(-20deg);opacity:0}
+  to{transform:translateY(0)scale(1)rotate(0);opacity:1}}
+.result-score{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:4px;
+  color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,.6)}
+.result-score-label{font-size:.72rem;color:var(--gray);margin-bottom:16px;letter-spacing:2px}
+.item-reward{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  border:1px solid var(--gold);padding:14px 22px;margin-bottom:18px;position:relative;overflow:hidden;
+  animation:item-appear .6s cubic-bezier(.34,1.56,.64,1) .9s backwards;
+  box-shadow:0 0 24px rgba(255,215,0,.3)}
+.item-reward::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,215,0,.08)30%,
+  rgba(255,255,255,.12)50%,rgba(255,215,0,.08)70%,transparent 100%);
+  animation:metallic-shine 2s ease-in-out 1s 1}
+@keyframes metallic-shine{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes item-appear{from{transform:scale(.6)translateY(20px);opacity:0}to{transform:scale(1)translateY(0);opacity:1}}
+.item-reward-badge{font-family:'Bebas Neue',sans-serif;font-size:.72rem;color:var(--gold);letter-spacing:4px;margin-bottom:8px}
+.item-reward-icon{font-size:2.4rem;margin-bottom:6px}
+.item-reward-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px}
+.result-btns{display:flex;gap:12px;width:100%;max-width:320px}
+.result-btns .btn{flex:1}
+
+/* ── COLLECTION ── */
+#screen-collection{background:linear-gradient(170deg,#0a1728,var(--navy2));
+  overflow-y:auto;justify-content:flex-start;padding-top:20px;padding-bottom:80px}
+.col-tabs{display:flex;gap:8px;width:100%;max-width:360px;margin-bottom:10px}
+.col-tab{flex:1;padding:8px 0;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);border-radius:2px;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;color:var(--gray);
+  transition:all .15s}
+.col-tab.active.dance{background:rgba(255,107,0,.15);border-color:var(--orange);color:var(--orange)}
+.col-tab.active.vocal{background:rgba(0,255,255,.12);border-color:var(--cyan);color:var(--cyan)}
+.col-tab.active.rapper{background:rgba(255,215,0,.12);border-color:var(--gold);color:var(--gold)}
+
+/* 앨범 진행 바 */
+.album-progress{width:100%;max-width:360px;margin-bottom:12px}
+.album-progress-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--gray);margin-bottom:3px}
+.album-progress-track{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.album-progress-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.album-progress-fill.dance {background:linear-gradient(90deg,var(--orange),#FFD700)}
+.album-progress-fill.vocal {background:linear-gradient(90deg,var(--cyan),#3b82f6)}
+.album-progress-fill.rapper{background:linear-gradient(90deg,#FFD700,var(--orange))}
+
+/* 그룹 앨범 완성 보너스 */
+.group-album{
+  width:100%;max-width:360px;margin-bottom:14px;padding:14px;text-align:center;
+  background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  border:1px solid var(--gold);border-radius:4px;
+  box-shadow:0 0 28px rgba(255,215,0,.25);animation:item-appear .6s ease}
+.group-album-icon{font-size:2.4rem;margin-bottom:4px}
+.group-album-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;
+  color:var(--gold);margin-bottom:3px}
+.group-album-desc{font-size:.68rem;color:var(--gray)}
+
+/* 포토카드 그리드 */
+.col-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  width:100%;max-width:360px;margin-bottom:18px}
+
+/* 포토카드 기본 */
+.photo-card{
+  aspect-ratio:3/4;border-radius:6px;position:relative;overflow:hidden;
+  cursor:pointer;transition:transform .2s,box-shadow .2s;
+  border:2px solid rgba(255,255,255,.1);
+  background:linear-gradient(135deg,rgba(6,16,34,.95),rgba(10,25,49,.9))}
+.photo-card:not(.locked):hover{transform:translateY(-4px) scale(1.04)}
+.photo-card.locked{opacity:.42;cursor:default}
+
+/* 등급별 테두리·글로우 */
+.photo-card.gN {border-color:#555}
+.photo-card.gR {border-color:#3b82f6;box-shadow:0 0 10px rgba(59,130,246,.4)}
+.photo-card.gSR{border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.5)}
+.photo-card.gUR{border-color:#FFD700;animation:ur-pulse 2s ease-in-out infinite}
+@keyframes ur-pulse{
+  0%,100%{box-shadow:0 0 16px rgba(255,215,0,.5)}
+  50%{box-shadow:0 0 30px rgba(255,215,0,.9),0 0 50px rgba(255,107,0,.3)}}
+
+/* 카드 초상화 영역 */
+.card-portrait{
+  width:100%;height:65%;
+  background-size:cover;
+  background-repeat:no-repeat;
+  background-position:center top}
+
+/* 잠긴 카드 */
+.card-lock-area{width:100%;height:65%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px}
+.card-lock-icon{font-size:1.8rem;opacity:.55}
+.card-hint{font-size:.56rem;color:rgba(255,255,255,.32);text-align:center;padding:0 4px;line-height:1.4}
+
+/* 등급 뱃지 */
+.card-grade-badge{
+  position:absolute;top:5px;right:5px;z-index:2;
+  font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:1px;
+  padding:1px 6px;border-radius:10px}
+.gN  .card-grade-badge{background:#444;color:#888}
+.gR  .card-grade-badge{background:rgba(59,130,246,.85);color:#fff}
+.gSR .card-grade-badge{background:rgba(168,85,247,.85);color:#fff}
+.gUR .card-grade-badge{
+  background:linear-gradient(90deg,#FFD700,#FF6B00,#FFD700);
+  background-size:200%;color:#000;animation:badge-shine 1.8s linear infinite}
+@keyframes badge-shine{from{background-position:200%}to{background-position:-100%}}
+
+/* 카드 정보 영역 */
+.card-info{
+  padding:5px 7px 5px;height:35%;
+  background:linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.88));
+  display:flex;flex-direction:column;justify-content:center;gap:2px}
+.card-stage-nm{font-size:.6rem;color:rgba(255,255,255,.6);letter-spacing:.5px}
+.card-stars-row{font-size:.7rem;color:var(--gold);letter-spacing:1px}
+.card-item-nm{font-size:.58rem;color:rgba(255,255,255,.42);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 업그레이드 바 (카드 하단) */
+.card-upg-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06)}
+.card-upg-fill{height:100%}
+.gR  .card-upg-fill{background:rgba(59,130,246,.8);width:33%}
+.gSR .card-upg-fill{background:rgba(168,85,247,.8);width:66%}
+.gUR .card-upg-fill{background:linear-gradient(90deg,#FFD700,#FF6B00);width:100%}
+
+/* 구버전 col-item 호환 (삭제 방지) */
+.col-item{display:none}
+
+/* Particles & misc */
+.float-particle{position:fixed;pointer-events:none;z-index:999;
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--orange);
+  animation:float-up .9s ease-out forwards}
+@keyframes float-up{from{opacity:1;transform:translateY(0)scale(1)}to{opacity:0;transform:translateY(-65px)scale(.5)}}
+.back-btn{position:absolute;top:14px;left:14px;background:rgba(0,255,255,.07);
+  border:1px solid rgba(0,255,255,.2);color:var(--cyan);padding:6px 16px;border-radius:2px;
+  cursor:pointer;font-size:.78rem;z-index:10;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.back-btn:hover{background:rgba(0,255,255,.14)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,255,255,.2)}
+.mute-btn{position:absolute;top:12px;right:12px;z-index:9999;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.75);width:38px;height:38px;border-radius:50%;
+  cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;backdrop-filter:blur(6px);padding:0}
+.mute-btn:hover{background:rgba(0,255,255,.12);border-color:var(--cyan);color:var(--cyan)}
+
+/* ── RANKING ── */
+#screen-ranking{background:linear-gradient(170deg,#1a0b2e,var(--navy2));
+  overflow-y:auto;justify-content:flex-start;padding-top:20px;padding-bottom:80px;}
+.rank-tabs{display:flex;gap:8px;width:100%;max-width:360px;margin-bottom:14px}
+.rank-tab{flex:1;padding:8px 0;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);border-radius:2px;cursor:pointer;
+  font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;color:var(--gray);
+  transition:all .15s;text-align:center}
+.rank-tab.active.dance{background:rgba(255,107,0,.15);border-color:var(--orange);color:var(--orange)}
+.rank-tab.active.vocal{background:rgba(0,255,255,.12);border-color:var(--cyan);color:var(--cyan)}
+.rank-tab.active.rapper{background:rgba(255,215,0,.12);border-color:var(--gold);color:var(--gold)}
+
+.rank-list{width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px;}
+.rank-card{display:flex;align-items:center;padding:12px;background:rgba(6,16,34,.8);border-radius:4px;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.rank-card.me{background:rgba(255,215,0,.12);border-color:var(--gold);box-shadow:0 0 16px rgba(255,215,0,.2)}
+.rank-card.top1{background:linear-gradient(90deg,rgba(255,215,0,.2),rgba(255,107,0,.15));border-color:var(--gold)}
+.rank-card.top2{background:linear-gradient(90deg,rgba(224,224,224,.15),rgba(255,255,255,.05));border-color:#e0e0e0}
+.rank-card.top3{background:linear-gradient(90deg,rgba(205,127,50,.2),rgba(255,107,0,.05));border-color:#cd7f32}
+.rank-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;min-width:40px;text-align:center;color:var(--gray)}
+.top1 .rank-num{color:var(--gold);text-shadow:0 0 10px var(--gold)}
+.top2 .rank-num{color:#e0e0e0;text-shadow:0 0 10px #e0e0e0}
+.top3 .rank-num{color:#cd7f32;text-shadow:0 0 10px #cd7f32}
+.me .rank-num{color:var(--gold)}
+.rank-info{flex:1;margin-left:10px}
+.rank-name{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.rank-score{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--cyan)}
+.top1 .rank-score{color:var(--gold)}
+.me .rank-score{color:var(--gold)}
+.rank-icon{font-size:1.6rem}
+
+.my-rank-fixed{position:absolute;bottom:0;left:0;right:0;padding:16px;background:rgba(10,25,49,.95);backdrop-filter:blur(10px);border-top:1px solid var(--gold);display:flex;justify-content:center;z-index:100;box-shadow:0 -10px 20px rgba(0,0,0,.5)}
+
+.result-new-record{
+  font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:4px;
+  color:var(--cyan);text-shadow:0 0 16px rgba(0,255,255,.8);
+  margin-top:-10px;margin-bottom:16px;
+  animation:new-record-pop .6s cubic-bezier(.34,1.56,.64,1) infinite alternate;
+}
+@keyframes new-record-pop{from{transform:scale(1)}to{transform:scale(1.1)}}
+.stage-best{font-family:'Bebas Neue',sans-serif;font-size:.8rem;color:var(--orange);letter-spacing:1px;margin-top:2px}
+
+/* Mini Ranking */
+.mini-rank-box{width:100%;max-width:300px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:12px;margin-top:15px;display:flex;flex-direction:column;gap:6px;}
+.mini-rank-title{font-size:.85rem;color:var(--gray);text-align:center;margin-bottom:4px;letter-spacing:1px;}
+.mini-rank-item{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,255,255,.03);border-radius:3px;font-size:.8rem;}
+.mini-rank-item.me{background:rgba(255,215,0,.15);border-left:3px solid var(--gold);color:var(--gold);font-weight:bold;}
+.mini-rank-score{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;}
+
+/* ── ITEM SYSTEM ── */
+.item-equip-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.item-equip-modal{position:relative;z-index:1;width:100%;max-width:480px;
+  background:linear-gradient(170deg,#0d1e3a,var(--navy2));
+  border-top:2px solid rgba(255,215,0,.35);
+  border-radius:18px 18px 0 0;padding:22px 20px 36px;
+  max-height:88vh;overflow-y:auto;
+  animation:slide-up .28s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.ie-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:3px;
+  color:var(--gold);text-align:center;margin-bottom:3px;text-shadow:0 0 12px rgba(255,215,0,.5)}
+.ie-sub{font-size:.7rem;color:var(--gray);text-align:center;margin-bottom:14px;letter-spacing:1px}
+.ie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ie-card{padding:11px 6px 9px;background:rgba(6,16,34,.92);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.ie-card:hover:not(.empty){border-color:rgba(0,255,255,.35);background:rgba(0,255,255,.07)}
+.ie-card.selected{border-color:var(--gold);background:rgba(255,215,0,.13);
+  box-shadow:0 0 14px rgba(255,215,0,.3)}
+.ie-card.empty{opacity:.32;cursor:not-allowed}
+.ie-card-icon{font-size:1.7rem;margin-bottom:3px;line-height:1}
+.ie-card-name{font-size:.58rem;color:rgba(255,255,255,.8);letter-spacing:.3px;margin-bottom:3px;line-height:1.3}
+.ie-card-count{font-family:'Bebas Neue',sans-serif;font-size:.82rem;letter-spacing:1px;color:var(--cyan)}
+.ie-card.empty .ie-card-count{color:rgba(255,255,255,.2)}
+.ie-desc{font-size:.76rem;text-align:center;min-height:20px;margin-bottom:14px;
+  letter-spacing:.5px;padding:0 8px;transition:color .2s}
+.ie-btns{display:flex;gap:10px}
+.ie-btns .btn{flex:1}
+
+/* 활성 아이템 배지 (퍼즐 화면) */
+.active-item-badge{font-size:.65rem;letter-spacing:1px;padding:2px 9px;margin-top:2px;
+  background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);
+  border-radius:20px;color:var(--gold);display:none;width:fit-content}
+.active-item-badge.show{display:inline-block}
+
+/* 아이템 드롭 (결과 화면) */
+.item-drop-box{width:100%;max-width:300px;
+  background:linear-gradient(135deg,rgba(0,255,255,.06),rgba(255,215,0,.05));
+  border:1px solid rgba(0,255,255,.25);border-radius:8px;padding:12px 16px;
+  text-align:center;animation:item-appear .5s ease;margin-bottom:12px}
+.item-drop-title{font-size:.65rem;color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+.item-drop-row{display:flex;align-items:center;justify-content:center;gap:12px}
+.item-drop-icon{font-size:1.9rem;line-height:1}
+.item-drop-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:#fff;margin-bottom:1px}
+.item-drop-hint{font-size:.62rem;color:var(--gray)}
+
+/* 절대경로 순서 번호 */
+.tile-seq-num{position:absolute;top:2px;left:4px;font-family:'Bebas Neue',sans-serif;
+  font-size:.72rem;color:rgba(255,255,255,.65);pointer-events:none;line-height:1;
+  text-shadow:0 0 5px rgba(0,0,0,.9);letter-spacing:0}
+
+/* ── 스테이지맵 보유 장착형 아이템 ── */
+.stage-item-bag{width:100%;max-width:360px;margin-bottom:10px;
+  background:rgba(6,16,34,.8);border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:10px 14px}
+.sib-title{font-size:.62rem;color:rgba(255,255,255,.38);letter-spacing:2px;margin-bottom:8px}
+.sib-row{display:flex;gap:8px}
+.sib-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px 6px;background:rgba(255,255,255,.04);border-radius:8px;
+  border:1px solid rgba(255,255,255,.07)}
+.sib-icon{font-size:1.3rem;line-height:1}
+.sib-name{font-size:.52rem;color:rgba(255,255,255,.38);letter-spacing:0;text-align:center;line-height:1.2}
+.sib-count{font-family:'Bebas Neue',sans-serif;font-size:.75rem;color:var(--cyan);letter-spacing:0}
+.sib-item.sib-active .sib-count{color:var(--gold)}
+.sib-item.sib-empty .sib-icon{opacity:.3}
+.sib-item.sib-empty .sib-count{color:rgba(255,255,255,.2)}
+
+/* ── 인게임 즉발형 아이템 바 ── */
+.item-bar{display:flex;gap:6px;justify-content:center;width:100%;max-width:400px;margin:5px 0 2px}
+.item-slot{flex:1;max-width:70px;display:flex;flex-direction:column;align-items:center;
+  padding:7px 3px 5px;background:rgba(6,16,34,.88);
+  border:1px solid rgba(255,255,255,.1);border-radius:10px;
+  cursor:pointer;transition:all .15s;position:relative;user-select:none}
+.item-slot:hover:not(.empty){border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.1);transform:translateY(-2px)}
+.item-slot:active:not(.empty){transform:scale(.88)}
+.item-slot.empty{opacity:.28;cursor:not-allowed}
+.item-slot.ready-state{border-color:var(--cyan);background:rgba(0,255,255,.13);
+  animation:slot-ready .9s ease-in-out infinite;pointer-events:none}
+.item-slot.gold-state{border-color:var(--gold);background:rgba(255,215,0,.18);
+  animation:gold-pulse 1s ease-in-out infinite;pointer-events:none}
+.item-slot.fever-state{border-color:var(--orange);background:rgba(255,107,0,.18);
+  animation:fever-pulse .7s ease-in-out infinite;pointer-events:none}
+@keyframes slot-ready{0%,100%{box-shadow:0 0 5px rgba(0,255,255,.3)}50%{box-shadow:0 0 14px rgba(0,255,255,.8)}}
+.item-slot-icon{font-size:1.45rem;line-height:1;margin-bottom:2px}
+.item-slot-name{font-size:.42rem;color:rgba(255,255,255,.45);text-align:center;letter-spacing:.5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;margin-bottom:2px}
+.item-slot-count{font-family:'Bebas Neue',sans-serif;font-size:.75rem;
+  color:var(--cyan);letter-spacing:0;min-height:14px;text-align:center}
+.item-slot.empty .item-slot-count{color:rgba(255,255,255,.2)}
+.item-slot.ready-state .item-slot-count{color:var(--cyan);font-size:.62rem}
+.item-slot.gold-state .item-slot-count{color:var(--gold)}
+.item-slot.fever-state .item-slot-count{color:var(--orange)}
+
+/* ── 즉발형 아이템 슬롯 버튼 (퍼즐 화면) ── */
+.active-slot-row{width:100%;max-width:400px;display:flex;justify-content:flex-end;min-height:28px;margin:2px 0}
+#activeSlotBtn{
+  padding:5px 14px;border-radius:4px;border:1px solid rgba(255,215,0,.5);
+  background:rgba(255,215,0,.14);color:var(--gold);font-size:.72rem;
+  font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .15s;
+  letter-spacing:.3px;white-space:nowrap}
+#activeSlotBtn:hover{background:rgba(255,215,0,.28);box-shadow:0 0 12px rgba(255,215,0,.35)}
+#activeSlotBtn:active{transform:scale(.91)}
+#activeSlotBtn.used{opacity:.35;cursor:not-allowed;border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.3);pointer-events:none}
+#activeSlotBtn.gold-active{border-color:var(--gold);background:rgba(255,215,0,.28);
+  animation:gold-pulse 1s ease-in-out infinite;pointer-events:none}
+#activeSlotBtn.fever-active{border-color:var(--orange);background:rgba(255,107,0,.22);
+  color:var(--orange);animation:fever-pulse .6s ease-in-out infinite;pointer-events:none}
+#activeSlotBtn.shield-ready{border-color:#a855f7;background:rgba(168,85,247,.2);color:#a855f7;pointer-events:none}
+#activeSlotBtn.revive-ready{border-color:#22c55e;background:rgba(34,197,94,.18);color:#22c55e;pointer-events:none}
+#activeSlotBtn.erase-ready{border-color:#ef4444;background:rgba(239,68,68,.18);color:#ef4444;pointer-events:none}
+#activeSlotBtn.slow-active{border-color:#c084fc;background:rgba(192,132,252,.18);color:#c084fc;pointer-events:none}
+@keyframes fever-pulse{0%,100%{box-shadow:0 0 6px rgba(255,107,0,.4)}50%{box-shadow:0 0 16px rgba(255,107,0,.9)}}
+
+/* ══════════════════════════════════════
+   ITEM SHOP SCREEN
+═══════════════════════════════════════ */
+#screen-shop{background:linear-gradient(170deg,#0d1e3a,var(--navy2));gap:0;padding:16px 16px 0;overflow-y:auto;justify-content:flex-start}
+.shop-header{width:100%;max-width:400px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.shop-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--cyan);
+  text-shadow:0 0 14px rgba(0,255,255,.45)}
+.shop-coins{display:flex;align-items:center;gap:6px;background:rgba(251,191,36,.1);
+  border:1px solid rgba(251,191,36,.3);border-radius:20px;padding:5px 13px}
+.shop-coins-icon{font-size:1.1rem}
+.shop-coins-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#fbbf24;letter-spacing:1px}
+
+.shop-tabs{display:flex;gap:0;width:100%;max-width:400px;margin-bottom:12px;
+  border-bottom:2px solid rgba(255,255,255,.08)}
+.shop-tab{flex:1;padding:8px 0;font-family:'Bebas Neue',sans-serif;font-size:.85rem;
+  letter-spacing:2px;color:rgba(255,255,255,.35);background:none;border:none;
+  cursor:pointer;transition:color .15s,border-bottom .15s;border-bottom:2px solid transparent;margin-bottom:-2px}
+.shop-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.shop-grid{width:100%;max-width:400px;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  padding-bottom:80px}
+.shop-card{background:rgba(6,16,34,.85);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:14px 10px 12px;display:flex;flex-direction:column;
+  align-items:center;gap:6px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.shop-card::before{content:'';position:absolute;inset:0;border-radius:12px;opacity:0;
+  background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.07),transparent 70%);
+  transition:opacity .18s}
+.shop-card:hover::before{opacity:1}
+.shop-card:hover{transform:translateY(-2px)}
+.shop-card.special{border-color:rgba(244,114,182,.2);background:rgba(20,6,20,.85)}
+.shop-card.special:hover{border-color:rgba(244,114,182,.5);box-shadow:0 4px 20px rgba(244,114,182,.2)}
+
+.sc-icon{font-size:2rem;line-height:1;margin-bottom:2px}
+.sc-name{font-size:.72rem;font-weight:700;color:#fff;text-align:center;letter-spacing:.3px}
+.sc-desc{font-size:.58rem;color:rgba(255,255,255,.4);text-align:center;line-height:1.4;min-height:24px}
+.sc-price{display:flex;align-items:center;gap:4px;margin-top:4px;
+  background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);
+  border-radius:14px;padding:3px 10px}
+.sc-price-icon{font-size:.8rem}
+.sc-price-val{font-family:'Bebas Neue',sans-serif;font-size:.85rem;color:#fbbf24}
+.sc-owned{position:absolute;top:8px;right:8px;font-family:'Bebas Neue',sans-serif;
+  font-size:.65rem;color:var(--cyan);background:rgba(0,255,255,.1);
+  border:1px solid rgba(0,255,255,.2);border-radius:8px;padding:1px 6px}
+.sc-owned.special-badge{color:#f472b6;background:rgba(244,114,182,.1);border-color:rgba(244,114,182,.2)}
+.shop-card:active{transform:scale(.96)}
+
+/* 구매 확인 모달 */
+.buy-modal-overlay{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center}
+.buy-modal{position:relative;z-index:1;background:var(--navy3);border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;padding:24px 22px 20px;width:88%;max-width:320px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.bm-icon{font-size:2.8rem;line-height:1}
+.bm-name{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;color:#fff}
+.bm-desc{font-size:.72rem;color:var(--gray);text-align:center}
+.bm-price-row{display:flex;align-items:center;gap:8px;background:rgba(251,191,36,.08);
+  border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:6px 18px}
+.bm-price-label{font-size:.72rem;color:rgba(255,255,255,.5)}
+.bm-price-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#fbbf24}
+.bm-balance{font-size:.68rem;color:rgba(255,255,255,.35)}
+.bm-balance span{color:var(--cyan)}
+.bm-err{font-size:.72rem;color:#ef4444;min-height:16px}
+.bm-btns{display:flex;gap:10px;width:100%}
+.bm-btns .btn{flex:1;max-width:none;padding:11px}
+
+/* ══════════════════════════════════════
+   LANGUAGE SELECT SCREEN
+═══════════════════════════════════════ */
+#screen-lang{background:linear-gradient(170deg,#0d1e3a,var(--navy2));gap:0}
+.lang-logo{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--orange),var(--gold));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.lang-title{font-size:.82rem;color:var(--cyan);letter-spacing:3px;margin-bottom:28px}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:320px}
+.lang-card{display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:18px 10px;background:rgba(6,16,34,.9);
+  border:1px solid rgba(255,255,255,.1);border-radius:12px;
+  cursor:pointer;transition:all .18s}
+.lang-card:hover{border-color:var(--cyan);background:rgba(0,255,255,.07);
+  transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,255,255,.15)}
+.lang-card:active{transform:scale(.95)}
+.lang-flag{font-size:2.2rem;line-height:1}
+.lang-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:#fff}
+.lang-native{font-size:.7rem;color:rgba(255,255,255,.4)}
+/* 인게임 언어 변경 버튼 */
+.lang-btn{position:fixed;bottom:14px;right:14px;z-index:10;
+  background:rgba(6,16,34,.85);border:1px solid rgba(255,255,255,.15);
+  border-radius:20px;padding:5px 12px;font-size:.72rem;color:rgba(255,255,255,.5);
+  cursor:pointer;transition:all .15s}
+.lang-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ── 아이템 장착 패널 섹션 타이틀 ── */
+.ie-section-title{
+  font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:3px;
+  color:var(--cyan);margin:8px 0 6px;padding-bottom:4px;
+  border-bottom:1px solid rgba(0,255,255,.2);text-align:left;width:100%}
+.ie-section-title.active-type{color:var(--gold);border-bottom-color:rgba(255,215,0,.25)}
+.ie-passive-desc,.ie-active-desc{
+  font-size:.72rem;text-align:center;min-height:16px;margin-bottom:8px;
+  letter-spacing:.4px;padding:0 6px;transition:color .2s;color:var(--gray)}
+</style>
+</head>
+<body>
+<div id="app">
+<button class="mute-btn" id="muteBtn" onclick="SND.toggle()" style="right:58px">🔊</button>
+<button class="mute-btn" id="settingsBtn" onclick="openSettings()" style="right:12px">⚙️</button>
+<div class="bg-grid"></div>
+<div class="bg-stars" id="bgStars"></div>
+<div class="flash" id="flashEl"></div>
+<div class="gold-burst" id="goldBurst"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="settings-overlay" id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+  <div class="settings-box" style="background:linear-gradient(170deg,#0d1e3a,var(--navy2)); border:1px solid rgba(0,255,255,0.3); border-radius:12px; padding:24px; width:90%; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.8); text-align:center;">
+    <div class="settings-title" data-i18n="settings_title" style="font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--cyan); letter-spacing:2px; margin-bottom:20px;">설정 (SETTINGS)</div>
+    
+    <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1);">
+      <span data-i18n="settings_sound" style="font-size:0.9rem; color:rgba(255,255,255,0.9);">음향 (Sound)</span>
+      <button class="btn btn-secondary" id="settingsSoundToggle" style="padding:6px 16px; font-size:0.8rem; min-width:80px;" onclick="SND.toggle(); document.getElementById('settingsSoundToggle').textContent = SND.muted ? 'OFF' : 'ON';">ON</button>
+    </div>
+    
+    <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <span data-i18n="settings_lang" style="font-size:0.9rem; color:rgba(255,255,255,0.9);">언어 (Language)</span>
+      <button class="btn btn-primary" style="padding:6px 16px; font-size:0.8rem; min-width:80px;" onclick="closeSettings(); openLangModal();">🌐 변경</button>
+    </div>
+    
+    <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:0.9rem; color:#ef4444;">데이터 초기화 (Reset)</span>
+      <button class="btn btn-secondary" style="padding:6px 16px; font-size:0.8rem; min-width:80px; border-color:#ef4444; color:#ef4444;" onclick="resetData()">RESET</button>
+    </div>
+    
+    <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:0.9rem; color:#f472b6;">개발자 후원 (Support)</span>
+      <button class="btn btn-secondary" style="padding:6px 16px; font-size:0.8rem; min-width:80px; border-color:#f472b6; color:#f472b6; background:rgba(244,114,182,0.1)" onclick="openDonation()">💖 Buy Me a Coffee</button>
+    </div>
+    
+    <button class="btn btn-ghost" style="width:100%; padding:10px;" onclick="closeSettings()" data-i18n="settings_close">닫기 (Close)</button>
+  </div>
+</div>
+
+<!-- LANGUAGE SELECT -->
+<div class="screen" id="screen-lang">
+  <div class="lang-logo">K-IDOL BRAIN PUZZLE</div>
+  <div class="lang-title" id="langScreenTitle">SELECT LANGUAGE</div>
+  <div class="lang-grid">
+    <div class="lang-card" onclick="setLang('ko')">
+      <div class="lang-flag">🇰🇷</div>
+      <div class="lang-name">한국어</div>
+      <div class="lang-native">Korean</div>
+    </div>
+    <div class="lang-card" onclick="setLang('en')">
+      <div class="lang-flag">🇺🇸</div>
+      <div class="lang-name">ENGLISH</div>
+      <div class="lang-native">English</div>
+    </div>
+    <div class="lang-card" onclick="setLang('es')">
+      <div class="lang-flag">🇪🇸</div>
+      <div class="lang-name">ESPAÑOL</div>
+      <div class="lang-native">Spanish</div>
+    </div>
+    <div class="lang-card" onclick="setLang('id')">
+      <div class="lang-flag">🇮🇩</div>
+      <div class="lang-name">BAHASA</div>
+      <div class="lang-native">Indonesian</div>
+    </div>
+    <div class="lang-card" onclick="setLang('pt')" style="grid-column:1/-1;max-width:160px;justify-self:center">
+      <div class="lang-flag">🇧🇷</div>
+      <div class="lang-name">PORTUGUÊS</div>
+      <div class="lang-native">Brazilian Portuguese</div>
+    </div>
+  </div>
+</div>
+
+<!-- TITLE -->
+<div class="screen active" id="screen-title">
+  <div class="title-idol" id="titleIdol">🌟</div>
+  <div class="title-logo">K-IDOL<br>BRAIN PUZZLE</div>
+  <div class="title-sub" data-i18n="title_sub">★ 아이돌이 되는 두뇌 게임 ★</div>
+  <div class="title-btns">
+    <button class="btn btn-primary" onclick="startGame()" data-i18n="btn_start">게임 시작</button>
+    <button class="btn btn-secondary" id="continueBtn" style="display:none" onclick="goTo('stages')" data-i18n="btn_continue">계속하기</button>
+    <button class="btn btn-ghost" onclick="viewCollection()" data-i18n="btn_collection">📸 컬렉션</button>
+    <button class="btn btn-ghost" onclick="viewRanking()" data-i18n="btn_ranking_title">🏆 전체 랭킹</button>
+    <button class="btn btn-ghost" onclick="openDonation()" style="border-color:#f472b6; color:#f472b6; margin-top:8px" data-i18n="btn_donate">💖 개발자 커피 후원하기</button>
+  </div>
+  <button class="lang-btn" onclick="goTo('lang')">🌐 Language</button>
+</div>
+
+<!-- GENRE SELECT -->
+<div class="screen" id="screen-genre">
+  <button class="back-btn" onclick="goTo('title')" data-i18n="back">← 뒤로</button>
+  <div class="screen-title" style="margin-top:30px" data-i18n="genre_title">장르를 선택하세요</div>
+  <div class="screen-sub" data-i18n="genre_sub">어떤 아이돌이 될 건가요?</div>
+  <div class="genre-list">
+    <div class="genre-card" data-g="dance" onclick="selectGenre('dance')">
+      <div class="genre-icon-big"><img src="images/dance-icon.png" alt="댄스가수"></div>
+      <div class="genre-info">
+        <div class="genre-name-big" data-i18n="genre_dance_name">댄스가수</div>
+        <div class="genre-desc-txt" data-i18n="genre_dance_desc">패턴을 기억하고 안무를 재현하라</div>
+        <div class="genre-tag">WATCH → PERFORM</div>
+      </div>
+    </div>
+    <div class="genre-card" data-g="vocal" onclick="selectGenre('vocal')">
+      <div class="genre-icon-big"><img src="images/vocal-icon.png" alt="메인보컬"></div>
+      <div class="genre-info">
+        <div class="genre-name-big" data-i18n="genre_vocal_name">메인보컬</div>
+        <div class="genre-desc-txt" data-i18n="genre_vocal_desc">음정 멜로디를 듣고 그대로 따라 불러라</div>
+        <div class="genre-tag">LISTEN → SING</div>
+      </div>
+    </div>
+    <div class="genre-card" data-g="rapper" onclick="selectGenre('rapper')">
+      <div class="genre-icon-big"><img src="images/rapper-icon.png" alt="래퍼"></div>
+      <div class="genre-info">
+        <div class="genre-name-big" data-i18n="genre_rapper_name">래퍼</div>
+        <div class="genre-desc-txt" data-i18n="genre_rapper_desc">비트가 울리면 즉각 반응하라</div>
+        <div class="genre-tag" data-i18n="genre_rapper_tag">즉각 반응!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE CREATE (최초 1회) -->
+<div class="screen" id="screen-profile">
+  <button class="back-btn" onclick="goTo('title')" data-i18n="back">← 뒤로</button>
+  <div class="screen-title" style="margin-top:30px" data-i18n="profile_title1">당신만의 K-IDOL을</div>
+  <div class="screen-title" style="margin-top:0;margin-bottom:4px" data-i18n="profile_title2">데뷔시켜 보세요!</div>
+  <div class="screen-sub" data-i18n="profile_sub">스타일을 고르고 이름을 지어주세요</div>
+  <div class="prof-gender-label" data-i18n="profile_style_label">▸ 스타일 선택</div>
+  <div class="char-grid">
+    <div class="char-card" id="prof-card-girl" onclick="profSelectChar('girl')">
+      <div class="char-avatar"><div class="char-portrait girl" style="width:90px;height:90px;border-radius:12px"></div></div>
+      <div class="char-name" data-i18n="profile_girl_name">걸 스타일</div>
+      <div class="char-stat" data-i18n="profile_girl_stat">리듬감 ★★★<br>표현력 ★★★</div>
+    </div>
+    <div class="char-card" id="prof-card-boy" onclick="profSelectChar('boy')">
+      <div class="char-avatar"><div class="char-portrait boy" style="width:90px;height:90px;border-radius:12px"></div></div>
+      <div class="char-name" data-i18n="profile_boy_name">보이 스타일</div>
+      <div class="char-stat" data-i18n="profile_boy_stat">스피드 ★★★<br>집중력 ★★★</div>
+    </div>
+  </div>
+  <div class="prof-name-label" data-i18n="profile_name_label">▸ 아이돌 이름</div>
+  <input type="text" id="idolNameInput" class="idol-name-input"
+    data-i18n-ph="profile_name_ph" placeholder="이름 (최대 8자, 미입력 시 자동 부여)" maxlength="8">
+  <button class="btn btn-primary" id="profConfirmBtn"
+    style="max-width:280px;margin-top:20px;opacity:.3;pointer-events:none"
+    onclick="confirmProfile()" data-i18n="profile_confirm">✦ 내 아이돌 데뷔시키기!</button>
+</div>
+
+<!-- STAGE MAP -->
+<div class="screen" id="screen-stages">
+  <button class="back-btn" onclick="goTo('genre')" data-i18n="back_genre">← 장르</button>
+  <div class="stage-hero">
+    <div class="stage-hero-idol" id="heroIdol">🌟</div>
+    <div class="stage-hero-name">
+  <span id="heroName">—</span>
+  <button id="renameBadge" onclick="useRename()" style="display:none; font-size:0.7rem; margin-left:8px; padding:2px 8px; border-radius:10px; border:1px solid var(--gold); background:rgba(255,215,0,0.2); color:var(--gold); cursor:pointer;">✏️ 변경</button>
+</div>
+<div class="genre-badge" id="genreBadge">—</div>
+</div>
+  <div class="growth-row">
+    <div class="growth-labels">
+      <span data-i18n="growth_label">성장도</span>
+      <span id="starsLabel" style="color:var(--gold)">⭐ 0 / 15</span>
+      <span id="coinsLabel" style="color:#fbbf24;font-size:.78rem">🪙 0</span>
+    </div>
+    <div class="growth-track"><div class="growth-fill" id="growthFill" style="width:0%"></div></div>
+  </div>
+  <div class="stage-list" id="stageList"></div>
+  <div id="stageItemBag"></div>
+  <div class="map-footer">
+    <button class="btn btn-ghost" onclick="viewRanking()" data-i18n="btn_ranking_map">🏆 랭킹</button>
+    <button class="btn btn-ghost" onclick="viewCollection()" data-i18n="btn_collection_map">📸 컬렉션</button>
+    <button class="btn btn-ghost" onclick="viewItemBag()" data-i18n="btn_shop">🛒 아이템 샵</button>
+  </div>
+</div>
+
+<!-- PUZZLE -->
+<div class="screen" id="screen-puzzle">
+  <div class="pz-header">
+    <div>
+      <div class="pz-stage-name" id="pzStageName">—</div>
+      <div class="active-item-badge" id="activeItemBadge"></div>
+    </div>
+    <button class="pz-quit" onclick="quitPuzzle()" data-i18n="pz_quit">✕ 나가기</button>
+    <div class="pz-score"><span data-i18n="pz_score">점수</span> <span id="pzScore">0</span></div>
+  </div>
+  <div class="beat-track"><div class="beat-fill" id="beatFill" style="width:0%"></div></div>
+  <div class="phase-box">
+    <div class="phase-label" id="phaseLabel"></div>
+    <div class="phase-hint"  id="phaseHint"></div>
+  </div>
+  <div class="tile-grid dance" id="tileGrid"></div>
+  <div id="rapperBeats" class="rapper-beats" style="display:none"></div>
+  <div class="item-bar" id="itemBar"></div>
+  <div class="combo-display" id="comboDisplay"></div>
+  <div class="round-dots"    id="roundDots"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="result-idol" id="resultIdol">🌟</div>
+  <div class="result-title" id="resultTitle">공연 완료!</div>
+  <div class="result-stars" id="resultStars"></div>
+  <div class="result-score" id="resultScore">0</div>
+  <div id="resultNewRecord" class="result-new-record" style="display:none">NEW RECORD!</div>
+  <div class="result-score-label" data-i18n="result_score_label">SCORE</div>
+  <div id="resultCoinBox" style="display:none;align-items:center;gap:8px;
+    background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);
+    border-radius:10px;padding:7px 16px;margin-bottom:6px">
+    <span style="font-size:1.1rem">🪙</span>
+    <span id="resultCoinVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#fbbf24"></span>
+    <span style="font-size:.68rem;color:rgba(255,255,255,.35)" id="resultCoinTotal"></span>
+  </div>
+  <div class="item-drop-box" id="itemDropBox" style="display:none">
+    <div class="item-drop-title" data-i18n="result_drop_title">⚡ 아이템 획득!</div>
+    <div class="item-drop-row">
+      <div class="item-drop-icon" id="dropIcon"></div>
+      <div>
+        <div class="item-drop-name" id="dropName"></div>
+        <div class="item-drop-hint" data-i18n="result_drop_hint">인벤토리에 추가됨</div>
+      </div>
+    </div>
+  </div>
+  <div class="item-reward" id="itemReward" style="display:none">
+    <div class="item-reward-badge">✦ NEW ITEM UNLOCKED ✦</div>
+    <div class="item-reward-icon" id="rewardIcon"></div>
+    <div class="item-reward-name" id="rewardName"></div>
+  </div>
+  <div class="mini-rank-box" id="miniRankBox" style="display:none">
+    <div class="mini-rank-title" data-i18n="result_rank_title">오늘의 미니 랭킹 (동일 등급)</div>
+    <div id="miniRankList"></div>
+    <button class="btn btn-ghost" style="margin-top:8px;font-size:0.8rem;padding:6px" onclick="viewRanking()" data-i18n="result_rank_all">🏆 전체 토너먼트 랭킹 모두 보기</button>
+  </div>
+  <div class="result-btns" style="margin-top:15px">
+    <button class="btn btn-secondary" onclick="goTo('stages')" data-i18n="btn_stages">스테이지</button>
+    <button class="btn btn-primary" onclick="retryStage()" data-i18n="btn_retry">다시 도전</button>
+  </div>
+</div>
+
+<!-- COLLECTION -->
+<div class="screen" id="screen-collection">
+  <button class="back-btn" id="colBackBtn" data-i18n="back">← 뒤로</button>
+  <div class="screen-title" style="margin-top:46px" data-i18n="col_title">내 컬렉션</div>
+  <div class="screen-sub" id="colSub">0 / 15장 수집</div>
+  <div id="groupAlbumSection"></div>
+  <div class="col-tabs">
+    <button class="col-tab active dance" onclick="filterCol('dance')" data-i18n="col_tab_dance">💃 댄스</button>
+    <button class="col-tab vocal"        onclick="filterCol('vocal')" data-i18n="col_tab_vocal">🎤 보컬</button>
+    <button class="col-tab rapper"       onclick="filterCol('rapper')" data-i18n="col_tab_rapper">🎧 래퍼</button>
+  </div>
+  <div class="album-progress" id="albumProgress">
+    <div class="album-progress-labels">
+      <span id="albumName">댄스 앨범</span>
+      <span id="albumCount">0 / 5</span>
+    </div>
+    <div class="album-progress-track">
+      <div class="album-progress-fill dance" id="albumFill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="col-grid" id="colGrid"></div>
+</div>
+
+<!-- RANKING -->
+<div class="screen" id="screen-ranking">
+  <button class="back-btn" id="rankBackBtn" data-i18n="back">← 뒤로</button>
+  <div class="screen-title" style="margin-top:46px" data-i18n="rank_title">전체 랭킹</div>
+  <div class="screen-sub" data-i18n="rank_sub">경쟁자들을 제치고 1위에 도전하세요!</div>
+  <div class="rank-tabs">
+    <button class="rank-tab active dance" onclick="filterRank('dance')" data-i18n="rank_tab_dance">💃 댄스</button>
+    <button class="rank-tab vocal"        onclick="filterRank('vocal')" data-i18n="rank_tab_vocal">🎤 보컬</button>
+    <button class="rank-tab rapper"       onclick="filterRank('rapper')" data-i18n="rank_tab_rapper">🎧 래퍼</button>
+  </div>
+  <div class="rank-list" id="rankList"></div>
+  <div class="my-rank-fixed" id="myRankFixed"></div>
+</div>
+<!-- ITEM SHOP -->
+<div class="screen" id="screen-shop">
+  <div class="shop-header">
+    <div class="shop-title">🛒 ITEM SHOP</div>
+    <div class="shop-coins">
+      <span class="shop-coins-icon">🪙</span>
+      <span class="shop-coins-val" id="shopCoinsVal">0</span>
+    </div>
+  </div>
+  <div class="shop-tabs">
+    <button class="shop-tab active" id="shopTab-active" onclick="switchShopTab('active')" data-i18n="shop_tab_active">즉발형</button>
+    <button class="shop-tab" id="shopTab-passive" onclick="switchShopTab('passive')" data-i18n="shop_tab_passive">장착형</button>
+    <button class="shop-tab" id="shopTab-special" onclick="switchShopTab('special')" data-i18n="shop_tab_special">특수</button>
+  </div>
+  <div class="shop-grid" id="shopGrid"></div>
+  <button class="back-btn" style="position:fixed;top:14px;left:14px" onclick="goTo('stages')" data-i18n="back">← 뒤로</button>
+</div>
+
+<!-- BUY CONFIRM MODAL -->
+<div id="buyModal" style="display:none" class="buy-modal-overlay">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px)" onclick="closeBuyModal()"></div>
+  <div class="buy-modal">
+    <div class="bm-icon" id="bmIcon"></div>
+    <div class="bm-name" id="bmName"></div>
+    <div class="bm-desc" id="bmDesc"></div>
+    <div class="bm-price-row">
+      <span class="bm-price-label" data-i18n="buy_price_label">가격</span>
+      <span class="bm-price-val" id="bmPrice"></span>
+      <span class="bm-price-label">🪙</span>
+    </div>
+    <div class="bm-balance"><span data-i18n="buy_balance">보유 코인:</span> <span id="bmBalance">0</span> 🪙</div>
+    <div class="bm-err" id="bmErr"></div>
+    <div class="bm-btns">
+      <button class="btn btn-ghost" onclick="closeBuyModal()" data-i18n="buy_cancel">취소</button>
+      <button class="btn btn-primary" id="bmConfirmBtn" onclick="confirmBuy()" data-i18n="buy_confirm">구매하기</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- RENAME MODAL -->
+<div id="renameModal" style="display:none" class="item-equip-overlay">
+    <div class="ie-title" data-i18n="rename_title">✏️ 아이돌 이름 변경</div>
+    <div class="ie-sub" data-i18n="rename_sub">이름 변경권 1개가 소모됩니다</div>
+    <input id="renameInput" type="text" maxlength="12" data-i18n-ph="rename_ph" placeholder="새 이름 입력 (최대 12자)"
+      style="width:100%;padding:11px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+        border-radius:6px;color:#fff;font-size:1rem;font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center">
+    <div class="ie-btns">
+      <button class="btn btn-ghost" onclick="closeRenameModal()" data-i18n="rename_cancel">취소</button>
+      <button class="btn btn-primary" onclick="confirmRename()" data-i18n="rename_confirm">✏️ 변경하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// I18N — 5개 언어 번역 테이블
+// ═══════════════════════════════════════════════
+const I18N = {
+  ko:{
+    title_sub:'★ 아이돌이 되는 두뇌 게임 ★',btn_start:'게임 시작',btn_continue:'계속하기',
+    btn_collection:'📸 컬렉션',btn_ranking_title:'🏆 전체 랭킹',btn_donate:'💖 개발자 커피 후원하기',
+    genre_title:'장르를 선택하세요',genre_sub:'어떤 아이돌이 될 건가요?',
+    genre_dance_name:'댄스가수',genre_dance_desc:'패턴을 기억하고 안무를 재현하라',
+    genre_vocal_name:'메인보컬',genre_vocal_desc:'음정 멜로디를 듣고 그대로 따라 불러라',
+    genre_rapper_name:'래퍼',genre_rapper_desc:'비트가 울리면 즉각 반응하라',genre_rapper_tag:'즉각 반응!',
+    back:'← 뒤로',back_genre:'← 장르',
+    profile_title1:'당신만의 K-IDOL을',profile_title2:'데뷔시켜 보세요!',
+    profile_sub:'스타일을 고르고 이름을 지어주세요',profile_style_label:'▸ 스타일 선택',
+    profile_girl_name:'걸 스타일',profile_girl_stat:'리듬감 ★★★\n표현력 ★★★',
+    profile_boy_name:'보이 스타일',profile_boy_stat:'스피드 ★★★\n집중력 ★★★',
+    profile_name_label:'▸ 아이돌 이름',profile_name_ph:'이름 (최대 8자, 미입력 시 자동 부여)',
+    profile_confirm:'✦ 내 아이돌 데뷔시키기!',
+    growth_label:'성장도',btn_ranking_map:'🏆 랭킹',btn_collection_map:'📸 컬렉션',btn_shop:'🛒 아이템 샵',
+    stage_need:'⭐ {n}개 필요',stage_best:'BEST: {n}',passive_items:'PASSIVE ITEMS',item_none:'없음',
+    pz_quit:'✕ 나가기',pz_score:'점수',
+    phase_watch:'👁️ 잘 봐둬!',phase_perform:'🔥 같은 순서로 탭하세요!',
+    phase_listen:'🎵 멜로디를 들으세요!',phase_sing:'🎤 같은 음정으로 따라하세요!',
+    phase_watch_label:'WATCH',phase_perform_label:'PERFORM',phase_listen_label:'LISTEN',phase_sing_label:'SING',
+    rapper_beat:'{n} / {t} 비트',
+    result_perfect:'퍼펙트 퍼포먼스!',result_great:'멋진 무대!',result_good:'좋은 시작!',result_fail:'무대 실패...',
+    result_score_label:'SCORE',result_drop_title:'⚡ 아이템 획득!',result_drop_hint:'인벤토리에 추가됨',
+    result_rank_title:'오늘의 미니 랭킹 (동일 등급)',result_rank_all:'🏆 전체 토너먼트 랭킹 모두 보기',
+    btn_stages:'스테이지',btn_retry:'다시 도전',coin_total:'총 {n} 🪙',rank_pos:'{n}위',rank_me:'나',
+    col_title:'내 컬렉션',col_sub:'{n} / 15장 수집',
+    col_tab_dance:'💃 댄스',col_tab_vocal:'🎤 보컬',col_tab_rapper:'🎧 래퍼',
+    album_dance:'댄스 앨범',album_vocal:'보컬 앨범',album_rapper:'래퍼 앨범',
+    col_complete_badge:'★ COMPLETE',col_locked:'미수집',
+    rank_title:'전체 랭킹',rank_sub:'경쟁자들을 제치고 1위에 도전하세요!',
+    rank_tab_dance:'💃 댄스',rank_tab_vocal:'🎤 보컬',rank_tab_rapper:'🎧 래퍼',
+    shop_tab_active:'즉발형',shop_tab_passive:'장착형',shop_tab_special:'특수',
+    shop_no_items:'아이템 없음',buy_price_label:'가격',buy_balance:'보유 코인:',
+    buy_err_coins:'🪙 코인이 부족합니다',buy_cancel:'취소',buy_confirm:'구매하기',
+    equip_title:'🎒 장착형 선택',equip_sub:'게임 전 패시브 장착 · 즉발형은 인게임 자동 표시',
+    equip_default_desc:'장착 없이 시작 가능',equip_active_none:'게임 중 아이템 없음',equip_skip:'없이 시작',equip_start:'✦ 시작!',
+    item_ready:'대기중',unit_sec:'초',unit_hits:'타',unit_min:'분',
+    rename_title:'✏️ 아이돌 이름 변경',rename_sub:'이름 변경권 1개가 소모됩니다',
+    rename_ph:'새 이름 입력 (최대 12자)',rename_cancel:'취소',rename_confirm:'✏️ 변경하기',
+    rename_done:'✏️ 이름 변경 완료!',rename_none:'✏️ 이름 변경권 없음',
+    item_shield_name:'콤보 쉴드',item_shield_desc:'발동 → 다음 미스 콤보 유지',
+    item_revive_name:'부활권',item_revive_desc:'발동 → 다음 미스 재시작 없음',
+    item_erase_name:'에러 삭제',item_erase_desc:'발동 → 다음 미스 완전 무효화',
+    item_gold_name:'골드 타임',item_gold_desc:'발동 → 15초간 점수 2배',
+    item_fever_name:'피버 모드',item_fever_desc:'발동 → 다음 5타 점수 3배',
+    item_replay_name:'다시보기',item_replay_desc:'발동 → 시퀀스 재감상 (댄스/보컬)',
+    item_nexthint_name:'넥스트 힌트',item_nexthint_desc:'발동 → 다음 타일 2초 강조',
+    item_freeze_name:'비트 정지',item_freeze_desc:'발동 → 래퍼 비트 카운트 리셋',
+    item_slow_name:'슬로우',item_slow_desc:'발동 → 5초간 재생속도 절반',
+    item_hint_name:'힌트 카드',item_hint_desc:'시퀀스 감상 시간 +0.3초',
+    item_boost_name:'타임 부스터',item_boost_desc:'판정 시간 15% 여유',
+    item_path_name:'절대경로',item_path_desc:'타일에 순서 번호 표시',
+    item_unlimited_name:'1시간 무제한',item_unlimited_desc:'1시간 아이템 소모 없음',
+    item_rename_name:'이름 변경권',item_rename_desc:'아이돌 이름을 1회 변경',item_active:'활성중',unlimited_badge:'⏰ 무제한 모드 활성',
+    msg_shield:'💠 쉴드 준비!',msg_revive:'🩹 부활 준비!',msg_erase:'🧹 삭제 준비!',
+    msg_gold:'💎 GOLD TIME!',msg_fever:'🔥 FEVER x3!',msg_replay:'👁️ REPLAY!',
+    msg_replay_na:'👁️ 지금은 사용 불가',msg_nexthint:'🔦 다음 타일!',msg_nexthint_done:'🔦 이미 완료',
+    msg_freeze:'❄️ FREEZE!',msg_freeze_na:'❄️ 래퍼 전용',msg_freeze_nobeat:'❄️ 비트 없음',msg_slow:'⏸️ SLOW!',
+    msg_buy_success:'{icon} 구매 완료!',
+    stage_0_name:'연습생',stage_0_desc:'기초 훈련',stage_1_name:'레슨 통과',stage_1_desc:'강사 평가',
+    stage_2_name:'데뷔 선발',stage_2_desc:'최종 선발',stage_3_name:'첫 방송',stage_3_desc:'생방송 데뷔',
+    stage_4_name:'월드투어',stage_4_desc:'세계 무대',
+    label_dance:'💃 댄스가수',label_vocal:'🎤 메인보컬',label_rapper:'🎧 래퍼',
+    card_new:'획득',card_upgrade:'업그레이드',card_locked:'미수집',auto_name_prefix:'연습생_',
+    col_group_complete_title:'✦ 그룹 앨범 완성 ✦',col_group_complete_desc:'3개 장르 전부 클리어! 전설의 K-Idol 등극',
+    col_hint_first:'첫 번째 스테이지 클리어',col_hint_need:'⭐ {n}개 달성 후 클리어',
+    rank_my_score:'나의 총 점수 ({genre})',
+    note_do:'도',note_re:'레',note_mi:'미',note_fa:'파',
+    item_da0_name:'댄스 트레이닝복',item_da1_name:'무대 의상 기본',item_da2_name:'댄스 카리스마',item_da3_name:'방송 댄스 의상',item_da4_name:'레전드 댄서',
+    item_vo0_name:'마이크 스탠드',item_vo1_name:'보컬 교재',item_vo2_name:'데뷔 싱글',item_vo3_name:'음방 1위',item_vo4_name:'메인보컬 크리스탈',
+    item_ra0_name:'비트 헤드폰',item_ra1_name:'랩 노트',item_ra2_name:'데뷔 믹스테이프',item_ra3_name:'금목걸이',item_ra4_name:'래퍼 마이크',
+    photocard:'포토카드',
+  },
+  en:{
+    title_sub:'★ The K-Pop Brain Game ★',btn_start:'Start Game',btn_continue:'Continue',
+    btn_collection:'📸 Collection',btn_ranking_title:'🏆 Rankings',btn_donate:'💖 Support Developer Coffee',
+    genre_title:'Choose Your Genre',genre_sub:'What kind of idol will you be?',
+    genre_dance_name:'Dancer',genre_dance_desc:'Memorize the pattern and recreate the choreography',
+    genre_vocal_name:'Vocalist',genre_vocal_desc:'Listen to the melody and sing it back',
+    genre_rapper_name:'Rapper',genre_rapper_desc:'When the beat drops, react instantly',genre_rapper_tag:'React Now!',
+    back:'← Back',back_genre:'← Genre',
+    profile_title1:'Create Your Own',profile_title2:'K-IDOL!',
+    profile_sub:'Choose a style and name your idol',profile_style_label:'▸ Choose Style',
+    profile_girl_name:'Girl Style',profile_girl_stat:'Rhythm ★★★\nExpression ★★★',
+    profile_boy_name:'Boy Style',profile_boy_stat:'Speed ★★★\nFocus ★★★',
+    profile_name_label:'▸ Idol Name',profile_name_ph:'Name (max 8 chars)',
+    profile_confirm:'✦ Debut My Idol!',
+    growth_label:'Growth',btn_ranking_map:'🏆 Ranking',btn_collection_map:'📸 Collection',btn_shop:'🛒 Item Shop',
+    stage_need:'⭐ Need {n} stars',stage_best:'BEST: {n}',passive_items:'PASSIVE ITEMS',item_none:'None',
+    pz_quit:'✕ Quit',pz_score:'Score',
+    phase_watch:'👁️ Watch carefully!',phase_perform:'🔥 Tap in the same order!',
+    phase_listen:'🎵 Listen to the melody!',phase_sing:'🎤 Sing it back!',
+    phase_watch_label:'WATCH',phase_perform_label:'PERFORM',phase_listen_label:'LISTEN',phase_sing_label:'SING',
+    rapper_beat:'{n} / {t} beat',
+    result_perfect:'Perfect Performance!',result_great:'Great Show!',result_good:'Good Start!',result_fail:'Stage Failed...',
+    result_score_label:'SCORE',result_drop_title:'⚡ Item Obtained!',result_drop_hint:'Added to inventory',
+    result_rank_title:"Today's Mini Ranking",result_rank_all:'🏆 View Full Rankings',
+    btn_stages:'Stages',btn_retry:'Try Again',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Me',
+    col_title:'My Collection',col_sub:'{n} / 15 Collected',
+    col_tab_dance:'💃 Dance',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rapper',
+    album_dance:'Dance Album',album_vocal:'Vocal Album',album_rapper:'Rapper Album',
+    col_complete_badge:'★ COMPLETE',col_locked:'Locked',
+    rank_title:'Rankings',rank_sub:'Beat everyone and reach #1!',
+    rank_tab_dance:'💃 Dance',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rapper',
+    shop_tab_active:'Active',shop_tab_passive:'Passive',shop_tab_special:'Special',
+    shop_no_items:'No items',buy_price_label:'Price',buy_balance:'Balance:',
+    buy_err_coins:'🪙 Not enough coins',buy_cancel:'Cancel',buy_confirm:'Buy Now',
+    equip_title:'🎒 Select Passive',equip_sub:'Equip before game · Active items auto-shown in-game',
+    equip_default_desc:'Play without equipping',equip_active_none:'No in-game item selected',equip_skip:'Skip',equip_start:'✦ Start!',
+    item_ready:'Ready',unit_sec:'s',unit_hits:'hits',unit_min:'min',
+    rename_title:'✏️ Change Idol Name',rename_sub:'1 Name Change Ticket will be used',
+    rename_ph:'New name (max 12 chars)',rename_cancel:'Cancel',rename_confirm:'✏️ Change',
+    rename_done:'✏️ Name changed!',rename_none:'✏️ No rename tickets',
+    item_shield_name:'Combo Shield',item_shield_desc:'Activate → Keep combo on next miss',
+    item_revive_name:'Revive',item_revive_desc:'Activate → No restart on next miss',
+    item_erase_name:'Error Erase',item_erase_desc:'Activate → Next miss fully negated',
+    item_gold_name:'Gold Time',item_gold_desc:'Activate → 2x score for 15 seconds',
+    item_fever_name:'Fever Mode',item_fever_desc:'Activate → 3x score for next 5 hits',
+    item_replay_name:'Replay',item_replay_desc:'Activate → Rewatch sequence (Dance/Vocal)',
+    item_nexthint_name:'Next Hint',item_nexthint_desc:'Activate → Highlight next tile for 2s',
+    item_freeze_name:'Beat Freeze',item_freeze_desc:'Activate → Reset rapper beat count',
+    item_slow_name:'Slow',item_slow_desc:'Activate → Half speed for 5 seconds',
+    item_hint_name:'Hint Card',item_hint_desc:'Sequence view time +0.3s',
+    item_boost_name:'Time Booster',item_boost_desc:'Timing window 15% wider',
+    item_path_name:'Path Guide',item_path_desc:'Show order numbers on tiles',
+    item_unlimited_name:'1hr Unlimited',item_unlimited_desc:'No item usage for 1 hour',
+    item_rename_name:'Name Change',item_rename_desc:'Change idol name once',item_active:'Active',unlimited_badge:'⏰ Unlimited Mode Active',
+    msg_shield:'💠 Shield Ready!',msg_revive:'🩹 Revive Ready!',msg_erase:'🧹 Erase Ready!',
+    msg_gold:'💎 GOLD TIME!',msg_fever:'🔥 FEVER x3!',msg_replay:'👁️ REPLAY!',
+    msg_replay_na:'👁️ Not available now',msg_nexthint:'🔦 Next Tile!',msg_nexthint_done:'🔦 Already done',
+    msg_freeze:'❄️ FREEZE!',msg_freeze_na:'❄️ Rapper only',msg_freeze_nobeat:'❄️ No beat',msg_slow:'⏸️ SLOW!',
+    msg_buy_success:'{icon} Purchase complete!',
+    stage_0_name:'Trainee',stage_0_desc:'Basic Training',stage_1_name:'Lesson Clear',stage_1_desc:'Instructor Eval',
+    stage_2_name:'Debut Pick',stage_2_desc:'Final Selection',stage_3_name:'First Broadcast',stage_3_desc:'Live Debut',
+    stage_4_name:'World Tour',stage_4_desc:'World Stage',
+    label_dance:'💃 Dancer',label_vocal:'🎤 Vocalist',label_rapper:'🎧 Rapper',
+    card_new:'Obtained',card_upgrade:'Upgraded',card_locked:'Locked',auto_name_prefix:'Trainee_',
+    col_group_complete_title:'✦ Group Album Complete ✦',col_group_complete_desc:'All 3 genres cleared! Legendary K-Idol status achieved!',
+    col_hint_first:'Clear the first stage',col_hint_need:'⭐ Clear after {n} stars',
+    rank_my_score:'My Total Score ({genre})',
+    note_do:'Do',note_re:'Re',note_mi:'Mi',note_fa:'Fa',
+    item_da0_name:'Dance Tracksuit',item_da1_name:'Basic Stage Outfit',item_da2_name:'Dance Charisma',item_da3_name:'Broadcast Outfit',item_da4_name:'Legend Dancer',
+    item_vo0_name:'Mic Stand',item_vo1_name:'Vocal Textbook',item_vo2_name:'Debut Single',item_vo3_name:'Music Show #1',item_vo4_name:'Main Vocal Crystal',
+    item_ra0_name:'Beat Headphones',item_ra1_name:'Rap Notebook',item_ra2_name:'Debut Mixtape',item_ra3_name:'Gold Necklace',item_ra4_name:'Rapper Mic',
+    photocard:'Photo Card',
+  },
+  es:{
+    title_sub:'★ El Juego Mental del K-Pop ★',btn_start:'Iniciar',btn_continue:'Continuar',
+    btn_collection:'📸 Colección',btn_ranking_title:'🏆 Ranking',btn_donate:'💖 Apoyar al Desarrollador (Café)',
+    genre_title:'Elige Tu Género',genre_sub:'¿Qué tipo de ídolo serás?',
+    genre_dance_name:'Bailarín',genre_dance_desc:'Memoriza el patrón y recrea la coreografía',
+    genre_vocal_name:'Vocalista',genre_vocal_desc:'Escucha la melodía y cántala de vuelta',
+    genre_rapper_name:'Rapero',genre_rapper_desc:'Cuando suene el beat, reacciona al instante',genre_rapper_tag:'¡Reacciona!',
+    back:'← Atrás',back_genre:'← Género',
+    profile_title1:'Crea Tu Propio',profile_title2:'¡K-IDOL!',
+    profile_sub:'Elige un estilo y dale nombre a tu ídolo',profile_style_label:'▸ Elegir Estilo',
+    profile_girl_name:'Estilo Chica',profile_girl_stat:'Ritmo ★★★\nExpresión ★★★',
+    profile_boy_name:'Estilo Chico',profile_boy_stat:'Velocidad ★★★\nFoco ★★★',
+    profile_name_label:'▸ Nombre del Ídolo',profile_name_ph:'Nombre (máx 8 chars)',
+    profile_confirm:'✦ ¡Debutar mi Ídolo!',
+    growth_label:'Crecimiento',btn_ranking_map:'🏆 Ranking',btn_collection_map:'📸 Colección',btn_shop:'🛒 Tienda',
+    stage_need:'⭐ Necesitas {n} estrellas',stage_best:'MEJOR: {n}',passive_items:'OBJETOS PASIVOS',item_none:'Ninguno',
+    pz_quit:'✕ Salir',pz_score:'Puntos',
+    phase_watch:'👁️ ¡Observa!',phase_perform:'🔥 ¡Toca en el mismo orden!',
+    phase_listen:'🎵 ¡Escucha la melodía!',phase_sing:'🎤 ¡Cántala de vuelta!',
+    phase_watch_label:'VER',phase_perform_label:'ACTUAR',phase_listen_label:'ESCUCHAR',phase_sing_label:'CANTAR',
+    rapper_beat:'{n} / {t} beat',
+    result_perfect:'¡Actuación Perfecta!',result_great:'¡Gran Actuación!',result_good:'¡Buen Comienzo!',result_fail:'¡Actuación Fallida...',
+    result_score_label:'PUNTOS',result_drop_title:'⚡ ¡Objeto Obtenido!',result_drop_hint:'Añadido al inventario',
+    result_rank_title:'Mini Ranking de Hoy',result_rank_all:'🏆 Ver Ranking Completo',
+    btn_stages:'Niveles',btn_retry:'Reintentar',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Yo',
+    col_title:'Mi Colección',col_sub:'{n} / 15 Coleccionados',
+    col_tab_dance:'💃 Baile',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rap',
+    album_dance:'Álbum de Baile',album_vocal:'Álbum Vocal',album_rapper:'Álbum de Rap',
+    col_complete_badge:'★ COMPLETO',col_locked:'Sin coleccionar',
+    rank_title:'Ranking',rank_sub:'¡Supera a todos y llega al #1!',
+    rank_tab_dance:'💃 Baile',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rap',
+    shop_tab_active:'Activos',shop_tab_passive:'Pasivos',shop_tab_special:'Especial',
+    shop_no_items:'Sin objetos',buy_price_label:'Precio',buy_balance:'Monedas:',
+    buy_err_coins:'🪙 Monedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
+    equip_title:'🎒 Seleccionar Pasivo',equip_sub:'Equipar antes del juego · Activos se muestran solos',
+    equip_default_desc:'Jugar sin equipar',equip_active_none:'Sin ítem en el juego',equip_skip:'Omitir',equip_start:'✦ ¡Empezar!',
+    item_ready:'Listo',unit_sec:'s',unit_hits:'golpes',unit_min:'min',
+    rename_title:'✏️ Cambiar Nombre del Ídolo',rename_sub:'Se usará 1 ticket de cambio de nombre',
+    rename_ph:'Nuevo nombre (máx 12 chars)',rename_cancel:'Cancelar',rename_confirm:'✏️ Cambiar',
+    rename_done:'✏️ ¡Nombre cambiado!',rename_none:'✏️ Sin tickets de cambio',
+    item_shield_name:'Escudo Combo',item_shield_desc:'Activa → Mantiene combo en el siguiente fallo',
+    item_revive_name:'Revivir',item_revive_desc:'Activa → Sin reinicio en el siguiente fallo',
+    item_erase_name:'Borrar Error',item_erase_desc:'Activa → Siguiente fallo anulado',
+    item_gold_name:'Tiempo Dorado',item_gold_desc:'Activa → Puntos x2 por 15 segundos',
+    item_fever_name:'Modo Fiebre',item_fever_desc:'Activa → Puntos x3 por los siguientes 5 golpes',
+    item_replay_name:'Repetición',item_replay_desc:'Activa → Revive la secuencia (Baile/Vocal)',
+    item_nexthint_name:'Siguiente Pista',item_nexthint_desc:'Activa → Resalta el siguiente tile 2s',
+    item_freeze_name:'Congelar Beat',item_freeze_desc:'Activa → Reinicia el contador de beats',
+    item_slow_name:'Lento',item_slow_desc:'Activa → Velocidad a la mitad por 5s',
+    item_hint_name:'Tarjeta Pista',item_hint_desc:'Tiempo de visualización +0.3s',
+    item_boost_name:'Impulso Temporal',item_boost_desc:'Ventana de tiempo 15% más amplia',
+    item_path_name:'Guía de Ruta',item_path_desc:'Muestra números de orden en los tiles',
+    item_unlimited_name:'Sin Límite 1h',item_unlimited_desc:'Sin consumo de objetos por 1 hora',
+    item_rename_name:'Cambio de Nombre',item_rename_desc:'Cambia el nombre del ídolo una vez',item_active:'Activo',unlimited_badge:'⏰ Modo Ilimitado Activo',
+    msg_shield:'💠 ¡Escudo Listo!',msg_revive:'🩹 ¡Revivir Listo!',msg_erase:'🧹 ¡Borrar Listo!',
+    msg_gold:'💎 GOLD TIME!',msg_fever:'🔥 FEVER x3!',msg_replay:'👁️ REPLAY!',
+    msg_replay_na:'👁️ No disponible ahora',msg_nexthint:'🔦 ¡Siguiente Tile!',msg_nexthint_done:'🔦 Ya completado',
+    msg_freeze:'❄️ FREEZE!',msg_freeze_na:'❄️ Solo para Rapper',msg_freeze_nobeat:'❄️ Sin beat',msg_slow:'⏸️ SLOW!',
+    msg_buy_success:'{icon} ¡Compra completada!',
+    stage_0_name:'Aprendiz',stage_0_desc:'Entrenamiento Básico',stage_1_name:'Lección Superada',stage_1_desc:'Eval. Instructor',
+    stage_2_name:'Selección Debut',stage_2_desc:'Selección Final',stage_3_name:'Primera Transmisión',stage_3_desc:'Debut en Vivo',
+    stage_4_name:'Gira Mundial',stage_4_desc:'Escenario Mundial',
+    label_dance:'💃 Bailarín',label_vocal:'🎤 Vocalista',label_rapper:'🎧 Rapero',
+    card_new:'Obtenido',card_upgrade:'Mejorado',card_locked:'Sin coleccionar',auto_name_prefix:'Aprendiz_',
+    col_group_complete_title:'✦ Álbum de Grupo Completo ✦',col_group_complete_desc:'¡3 géneros completados! ¡Status de K-Idol legendario logrado!',
+    col_hint_first:'Supera el primer nivel',col_hint_need:'⭐ Supera con {n} estrellas',
+    rank_my_score:'Mi Puntuación Total ({genre})',
+    note_do:'Do',note_re:'Re',note_mi:'Mi',note_fa:'Fa',
+    item_da0_name:'Ropa de Entrenamiento',item_da1_name:'Traje de Escenario',item_da2_name:'Carisma de Baile',item_da3_name:'Traje de TV',item_da4_name:'Bailarín Legendario',
+    item_vo0_name:'Atril de Micrófono',item_vo1_name:'Libro de Vocal',item_vo2_name:'Sencillo de Debut',item_vo3_name:'#1 en TV',item_vo4_name:'Cristal de Vocalista',
+    item_ra0_name:'Auriculares Beat',item_ra1_name:'Cuaderno de Rap',item_ra2_name:'Mixtape de Debut',item_ra3_name:'Collar de Oro',item_ra4_name:'Micrófono de Rapper',
+    photocard:'Fotocard',
+  },
+  id:{
+    title_sub:'★ Game Otak K-Pop ★',btn_start:'Mulai Game',btn_continue:'Lanjutkan',
+    btn_collection:'📸 Koleksi',btn_ranking_title:'🏆 Peringkat',btn_donate:'💖 Dukung Pengembang (Kopi)',
+    genre_title:'Pilih Genre Kamu',genre_sub:'Idola seperti apa yang akan kamu jadi?',
+    genre_dance_name:'Penari',genre_dance_desc:'Ingat pola dan peragakan koreografi',
+    genre_vocal_name:'Vokalis',genre_vocal_desc:'Dengarkan melodi dan nyanyikan kembali',
+    genre_rapper_name:'Rapper',genre_rapper_desc:'Saat beat berbunyi, reaksi seketika',genre_rapper_tag:'Reaksi Cepat!',
+    back:'← Kembali',back_genre:'← Genre',
+    profile_title1:'Ciptakan K-IDOL',profile_title2:'Milikmu!',
+    profile_sub:'Pilih gaya dan beri nama idolamu',profile_style_label:'▸ Pilih Gaya',
+    profile_girl_name:'Gaya Cewek',profile_girl_stat:'Ritme ★★★\nEkspresi ★★★',
+    profile_boy_name:'Gaya Cowok',profile_boy_stat:'Kecepatan ★★★\nFokus ★★★',
+    profile_name_label:'▸ Nama Idola',profile_name_ph:'Nama (maks 8 karakter)',
+    profile_confirm:'✦ Debutkan Idolaku!',
+    growth_label:'Pertumbuhan',btn_ranking_map:'🏆 Peringkat',btn_collection_map:'📸 Koleksi',btn_shop:'🛒 Toko Item',
+    stage_need:'⭐ Butuh {n} bintang',stage_best:'TERBAIK: {n}',passive_items:'ITEM PASIF',item_none:'Tidak ada',
+    pz_quit:'✕ Keluar',pz_score:'Skor',
+    phase_watch:'👁️ Perhatikan!',phase_perform:'🔥 Ketuk dengan urutan yang sama!',
+    phase_listen:'🎵 Dengarkan melodinya!',phase_sing:'🎤 Nyanyikan kembali!',
+    phase_watch_label:'LIHAT',phase_perform_label:'LAKUKAN',phase_listen_label:'DENGAR',phase_sing_label:'NYANYI',
+    rapper_beat:'{n} / {t} beat',
+    result_perfect:'Penampilan Sempurna!',result_great:'Pertunjukan Hebat!',result_good:'Awal yang Baik!',result_fail:'Gagal...',
+    result_score_label:'SKOR',result_drop_title:'⚡ Item Didapat!',result_drop_hint:'Ditambahkan ke inventaris',
+    result_rank_title:'Mini Peringkat Hari Ini',result_rank_all:'🏆 Lihat Semua Peringkat',
+    btn_stages:'Level',btn_retry:'Coba Lagi',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Saya',
+    col_title:'Koleksiku',col_sub:'{n} / 15 Terkumpul',
+    col_tab_dance:'💃 Dance',col_tab_vocal:'🎤 Vokal',col_tab_rapper:'🎧 Rapper',
+    album_dance:'Album Dance',album_vocal:'Album Vokal',album_rapper:'Album Rapper',
+    col_complete_badge:'★ LENGKAP',col_locked:'Belum dikumpulkan',
+    rank_title:'Peringkat',rank_sub:'Kalahkan semua dan raih #1!',
+    rank_tab_dance:'💃 Dance',rank_tab_vocal:'🎤 Vokal',rank_tab_rapper:'🎧 Rapper',
+    shop_tab_active:'Aktif',shop_tab_passive:'Pasif',shop_tab_special:'Spesial',
+    shop_no_items:'Tidak ada item',buy_price_label:'Harga',buy_balance:'Koin:',
+    buy_err_coins:'🪙 Koin tidak cukup',buy_cancel:'Batal',buy_confirm:'Beli',
+    equip_title:'🎒 Pilih Pasif',equip_sub:'Pasang sebelum main · Item aktif otomatis muncul',
+    equip_default_desc:'Main tanpa memasang',equip_active_none:'Tidak ada item dalam game',equip_skip:'Lewati',equip_start:'✦ Mulai!',
+    item_ready:'Siap',unit_sec:'d',unit_hits:'hit',unit_min:'mnt',
+    rename_title:'✏️ Ubah Nama Idola',rename_sub:'1 tiket ubah nama akan digunakan',
+    rename_ph:'Nama baru (maks 12 karakter)',rename_cancel:'Batal',rename_confirm:'✏️ Ubah',
+    rename_done:'✏️ Nama berhasil diubah!',rename_none:'✏️ Tidak ada tiket ubah nama',
+    item_shield_name:'Perisai Kombo',item_shield_desc:'Aktifkan → Pertahankan kombo saat miss',
+    item_revive_name:'Kebangkitan',item_revive_desc:'Aktifkan → Tidak restart saat miss berikutnya',
+    item_erase_name:'Hapus Error',item_erase_desc:'Aktifkan → Miss berikutnya dibatalkan',
+    item_gold_name:'Waktu Emas',item_gold_desc:'Aktifkan → Skor x2 selama 15 detik',
+    item_fever_name:'Mode Fever',item_fever_desc:'Aktifkan → Skor x3 untuk 5 hit berikutnya',
+    item_replay_name:'Putar Ulang',item_replay_desc:'Aktifkan → Tonton ulang urutan',
+    item_nexthint_name:'Petunjuk Selanjutnya',item_nexthint_desc:'Aktifkan → Sorot tile berikutnya 2 detik',
+    item_freeze_name:'Bekukan Beat',item_freeze_desc:'Aktifkan → Reset hitungan beat rapper',
+    item_slow_name:'Lambat',item_slow_desc:'Aktifkan → Kecepatan setengah selama 5 detik',
+    item_hint_name:'Kartu Petunjuk',item_hint_desc:'Waktu tampil urutan +0.3 detik',
+    item_boost_name:'Pendorong Waktu',item_boost_desc:'Jendela timing 15% lebih lebar',
+    item_path_name:'Panduan Jalur',item_path_desc:'Tampilkan nomor urut di tile',
+    item_unlimited_name:'Tak Terbatas 1 Jam',item_unlimited_desc:'Tanpa konsumsi item selama 1 jam',
+    item_rename_name:'Ubah Nama',item_rename_desc:'Ubah nama idola sekali',item_active:'Aktif',unlimited_badge:'⏰ Mode Tak Terbatas Aktif',
+    msg_shield:'💠 Perisai Siap!',msg_revive:'🩹 Kebangkitan Siap!',msg_erase:'🧹 Hapus Siap!',
+    msg_gold:'💎 GOLD TIME!',msg_fever:'🔥 FEVER x3!',msg_replay:'👁️ REPLAY!',
+    msg_replay_na:'👁️ Tidak tersedia sekarang',msg_nexthint:'🔦 Tile Berikutnya!',msg_nexthint_done:'🔦 Sudah selesai',
+    msg_freeze:'❄️ FREEZE!',msg_freeze_na:'❄️ Khusus Rapper',msg_freeze_nobeat:'❄️ Tidak ada beat',msg_slow:'⏸️ SLOW!',
+    msg_buy_success:'{icon} Pembelian selesai!',
+    stage_0_name:'Trainee',stage_0_desc:'Latihan Dasar',stage_1_name:'Lulus Pelajaran',stage_1_desc:'Evaluasi Instruktur',
+    stage_2_name:'Seleksi Debut',stage_2_desc:'Seleksi Final',stage_3_name:'Siaran Pertama',stage_3_desc:'Debut Live',
+    stage_4_name:'Tur Dunia',stage_4_desc:'Panggung Dunia',
+    label_dance:'💃 Penari',label_vocal:'🎤 Vokalis',label_rapper:'🎧 Rapper',
+    card_new:'Didapat',card_upgrade:'Diupgrade',card_locked:'Belum dikumpulkan',auto_name_prefix:'Trainee_',
+    col_group_complete_title:'✦ Album Grup Selesai ✦',col_group_complete_desc:'3 genre selesai! Status K-Idol legendaris tercapai!',
+    col_hint_first:'Selesaikan stage pertama',col_hint_need:'⭐ Selesaikan setelah {n} bintang',
+    rank_my_score:'Total Skor Saya ({genre})',
+    note_do:'Do',note_re:'Re',note_mi:'Mi',note_fa:'Fa',
+    item_da0_name:'Pakaian Latihan',item_da1_name:'Kostum Panggung',item_da2_name:'Karisma Tari',item_da3_name:'Kostum TV',item_da4_name:'Penari Legendaris',
+    item_vo0_name:'Stand Mikrofon',item_vo1_name:'Buku Vokal',item_vo2_name:'Single Debut',item_vo3_name:'#1 Acara Musik',item_vo4_name:'Kristal Vokalis',
+    item_ra0_name:'Headphone Beat',item_ra1_name:'Buku Catatan Rap',item_ra2_name:'Mixtape Debut',item_ra3_name:'Kalung Emas',item_ra4_name:'Mikrofon Rapper',
+    photocard:'Kartu Foto',
+  },
+  pt:{
+    title_sub:'★ O Jogo Mental do K-Pop ★',btn_start:'Iniciar',btn_continue:'Continuar',
+    btn_collection:'📸 Coleção',btn_ranking_title:'🏆 Ranking',btn_donate:'💖 Apoie o Desenvolvedor (Café)',
+    genre_title:'Escolha Seu Gênero',genre_sub:'Que tipo de ídolo você será?',
+    genre_dance_name:'Dançarino',genre_dance_desc:'Memorize o padrão e recrie a coreografia',
+    genre_vocal_name:'Vocalista',genre_vocal_desc:'Ouça a melodia e cante de volta',
+    genre_rapper_name:'Rapper',genre_rapper_desc:'Quando o beat tocar, reaja imediatamente',genre_rapper_tag:'Reaja Agora!',
+    back:'← Voltar',back_genre:'← Gênero',
+    profile_title1:'Crie Seu Próprio',profile_title2:'K-IDOL!',
+    profile_sub:'Escolha um estilo e dê nome ao seu ídolo',profile_style_label:'▸ Escolher Estilo',
+    profile_girl_name:'Estilo Garota',profile_girl_stat:'Ritmo ★★★\nExpressão ★★★',
+    profile_boy_name:'Estilo Garoto',profile_boy_stat:'Velocidade ★★★\nFoco ★★★',
+    profile_name_label:'▸ Nome do Ídolo',profile_name_ph:'Nome (máx 8 caracteres)',
+    profile_confirm:'✦ Estrear Meu Ídolo!',
+    growth_label:'Crescimento',btn_ranking_map:'🏆 Ranking',btn_collection_map:'📸 Coleção',btn_shop:'🛒 Loja de Itens',
+    stage_need:'⭐ Precisa de {n} estrelas',stage_best:'MELHOR: {n}',passive_items:'ITENS PASSIVOS',item_none:'Nenhum',
+    pz_quit:'✕ Sair',pz_score:'Pontos',
+    phase_watch:'👁️ Observe!',phase_perform:'🔥 Toque na mesma ordem!',
+    phase_listen:'🎵 Ouça a melodia!',phase_sing:'🎤 Cante de volta!',
+    phase_watch_label:'VER',phase_perform_label:'ATUAR',phase_listen_label:'OUVIR',phase_sing_label:'CANTAR',
+    rapper_beat:'{n} / {t} beat',
+    result_perfect:'Performance Perfeita!',result_great:'Ótimo Show!',result_good:'Bom Começo!',
+    result_score_label:'PONTOS',result_drop_title:'⚡ Item Obtido!',result_drop_hint:'Adicionado ao inventário',
+    result_rank_title:'Mini Ranking de Hoje',result_rank_all:'🏆 Ver Ranking Completo',
+    btn_stages:'Fases',btn_retry:'Tentar Novamente',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Eu',
+    col_title:'Minha Coleção',col_sub:'{n} / 15 Coletados',
+    col_tab_dance:'💃 Dança',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rap',
+    album_dance:'Álbum de Dança',album_vocal:'Álbum Vocal',album_rapper:'Álbum de Rap',
+    col_complete_badge:'★ COMPLETO',col_locked:'Não coletado',
+    rank_title:'Ranking',rank_sub:'Supere todos e chegue ao #1!',
+    rank_tab_dance:'💃 Dança',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rap',
+    shop_tab_active:'Ativos',shop_tab_passive:'Passivos',shop_tab_special:'Especial',
+    shop_no_items:'Sem itens',buy_price_label:'Preço',buy_balance:'Moedas:',
+    buy_err_coins:'🪙 Moedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
+    equip_title:'🎒 Selecionar Passivo',equip_sub:'Equipar antes do jogo · Ativos aparecem automaticamente',
+    equip_default_desc:'Jogar sem equipar',equip_active_none:'Sem item no jogo',equip_skip:'Pular',equip_start:'✦ Começar!',
+    item_ready:'Pronto',unit_sec:'s',unit_hits:'acertos',unit_min:'min',
+    rename_title:'✏️ Mudar Nome do Ídolo',rename_sub:'1 ticket de mudança de nome será usado',
+    rename_ph:'Novo nome (máx 12 caracteres)',rename_cancel:'Cancelar',rename_confirm:'✏️ Mudar',
+    rename_done:'✏️ Nome alterado!',rename_none:'✏️ Sem tickets de mudança',
+    item_shield_name:'Escudo Combo',item_shield_desc:'Ativa → Mantém combo no próximo erro',
+    item_revive_name:'Reviver',item_revive_desc:'Ativa → Sem reinício no próximo erro',
+    item_erase_name:'Apagar Erro',item_erase_desc:'Ativa → Próximo erro anulado',
+    item_gold_name:'Tempo Dourado',item_gold_desc:'Ativa → Pontos x2 por 15 segundos',
+    item_fever_name:'Modo Fever',item_fever_desc:'Ativa → Pontos x3 pelos próximos 5 acertos',
+    item_replay_name:'Replay',item_replay_desc:'Ativa → Rever sequência (Dança/Vocal)',
+    item_nexthint_name:'Próxima Dica',item_nexthint_desc:'Ativa → Destaca próximo tile por 2s',
+    item_freeze_name:'Congelar Beat',item_freeze_desc:'Ativa → Reinicia contador de beat',
+    item_slow_name:'Lento',item_slow_desc:'Ativa → Velocidade pela metade por 5s',
+    item_hint_name:'Carta Dica',item_hint_desc:'Tempo de visualização +0.3s',
+    item_boost_name:'Impulso Temporal',item_boost_desc:'Janela de timing 15% mais ampla',
+    item_path_name:'Guia de Caminho',item_path_desc:'Mostra números de ordem nos tiles',
+    item_unlimited_name:'Ilimitado 1h',item_unlimited_desc:'Sem consumo de itens por 1 hora',
+    item_rename_name:'Mudança de Nome',item_rename_desc:'Muda o nome do ídolo uma vez',item_active:'Ativo',unlimited_badge:'⏰ Modo Ilimitado Ativo',
+    msg_shield:'💠 Escudo Pronto!',msg_revive:'🩹 Reviver Pronto!',msg_erase:'🧹 Apagar Pronto!',
+    msg_gold:'💎 GOLD TIME!',msg_fever:'🔥 FEVER x3!',msg_replay:'👁️ REPLAY!',
+    msg_replay_na:'👁️ Não disponível agora',msg_nexthint:'🔦 Próximo Tile!',msg_nexthint_done:'🔦 Já concluído',
+    msg_freeze:'❄️ FREEZE!',msg_freeze_na:'❄️ Somente Rapper',msg_freeze_nobeat:'❄️ Sem beat',msg_slow:'⏸️ SLOW!',
+    msg_buy_success:'{icon} Compra concluída!',
+    stage_0_name:'Trainee',stage_0_desc:'Treinamento Básico',stage_1_name:'Aula Concluída',stage_1_desc:'Avaliação do Instrutor',
+    stage_2_name:'Seleção de Estreia',stage_2_desc:'Seleção Final',stage_3_name:'Primeira Transmissão',stage_3_desc:'Estreia ao Vivo',
+    stage_4_name:'Turnê Mundial',stage_4_desc:'Palco Mundial',
+    label_dance:'💃 Dançarino',label_vocal:'🎤 Vocalista',label_rapper:'🎧 Rapper',
+    card_new:'Obtido',card_upgrade:'Atualizado',card_locked:'Não coletado',auto_name_prefix:'Trainee_',
+    col_group_complete_title:'✦ Álbum do Grupo Completo ✦',col_group_complete_desc:'3 gêneros concluídos! Status de K-Idol lendário alcançado!',
+    col_hint_first:'Complete a primeira fase',col_hint_need:'⭐ Complete após {n} estrelas',
+    rank_my_score:'Minha Pontuação Total ({genre})',
+    note_do:'Do',note_re:'Ré',note_mi:'Mi',note_fa:'Fá',
+    item_da0_name:'Roupa de Treino',item_da1_name:'Fantasia de Palco',item_da2_name:'Carisma de Dança',item_da3_name:'Fantasia de TV',item_da4_name:'Dançarino Lendário',
+    item_vo0_name:'Suporte de Mic',item_vo1_name:'Livro de Vocal',item_vo2_name:'Single de Estreia',item_vo3_name:'#1 no Programa',item_vo4_name:'Cristal da Vocalista',
+    item_ra0_name:'Fones de Beat',item_ra1_name:'Caderno de Rap',item_ra2_name:'Mixtape de Estreia',item_ra3_name:'Colar de Ouro',item_ra4_name:'Microfone de Rapper',
+    photocard:'Carta de Foto',
+  }
+};
+
+let currentLang = 'ko';
+function t(key, vars={}){
+  const d = I18N[currentLang]||I18N.en;
+  let s = d[key] || I18N.en[key] || key;
+  Object.keys(vars).forEach(k=>{ s=s.replace('{'+k+'}', vars[k]); });
+  return s;
+}
+function applyLang(){
+  document.documentElement.lang = currentLang==='ko'?'ko':currentLang==='es'?'es':currentLang==='id'?'id':currentLang==='pt'?'pt':'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+}
+function setLang(lang, fromModal=false){
+  currentLang = lang;
+  S.lang = lang;
+  save();
+  applyLang();
+
+  if (fromModal) {
+    document.getElementById('screen-lang').classList.remove('active');
+    if (previousScreenBeforeLang) {
+      const target = previousScreenBeforeLang;
+      document.getElementById('screen-'+target).classList.add('active');
+      previousScreenBeforeLang = null;
+      if(target==='stages')     renderStages();
+      if(target==='collection') renderCollection();
+      if(target==='ranking')    renderRanking();
+      if(target==='shop')       renderShop();
+      if(target==='title')      renderTitle();
+    }
+  } else {
+    goTo('title');
+  }
+}
+
+let previousScreenBeforeLang = null;
+
+function openSettings() {
+  document.getElementById('settingsModal').style.display = 'flex';
+  document.getElementById('settingsSoundToggle').textContent = SND.muted ? 'OFF' : 'ON';
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').style.display = 'none';
+}
+
+function openLangModal() {
+  // 현재 떠있는 active screen 저장
+  const activeScreen = document.querySelector('.screen.active');
+  if(activeScreen) {
+    previousScreenBeforeLang = activeScreen.id.replace('screen-', '');
+  } else {
+    previousScreenBeforeLang = 'title';
+  }
+  
+  // lang 버튼들이 fromModal=true를 전달하게 동적 수정
+  document.querySelectorAll('.lang-card').forEach(card => {
+    const lang = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+    card.setAttribute('onclick', `setLang('${lang}', true)`);
+  });
+  
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-lang').classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+// 스테이지 이름은 i18n으로 동적 반환
+const STAGES = [
+  {key:'0', icon:'🌱', need:0 },
+  {key:'1', icon:'🎶', need:2 },
+  {key:'2', icon:'💫', need:5 },
+  {key:'3', icon:'🎙️', need:8},
+  {key:'4', icon:'✈️', need:12},
+];
+function stageData(i){ return {name:t('stage_'+i+'_name'), desc:t('stage_'+i+'_desc'), icon:STAGES[i].icon, need:STAGES[i].need}; }
+
+const GCFG = {
+  dance: {
+    color:'var(--orange)',
+    stages:[
+      {seqLen:3,speed:900},{seqLen:4,speed:720},
+      {seqLen:5,speed:570},{seqLen:6,speed:440},{seqLen:7,speed:330}]
+  },
+  vocal: {
+    color:'var(--cyan)',
+    stages:[
+      {seqLen:5,speed:1000},{seqLen:7,speed:820},
+      {seqLen:9,speed:660},{seqLen:11,speed:520},{seqLen:13,speed:400}]
+  },
+  rapper:{
+    color:'var(--gold)',
+    stages:[
+      {beats:6, hitWindow:950,gap:320},
+      {beats:8, hitWindow:780,gap:270},
+      {beats:10,hitWindow:620,gap:230},
+      {beats:12,hitWindow:500,gap:200},
+      {beats:14,hitWindow:390,gap:180}]
+  }
+};
+
+const ITEMS = {
+  dance:[
+    {id:'da0',name:'댄스 트레이닝복',icon:'👗',stage:0},
+    {id:'da1',name:'무대 의상 기본',  icon:'✨',stage:1},
+    {id:'da2',name:'댄스 카리스마',   icon:'🔥',stage:2},
+    {id:'da3',name:'방송 댄스 의상',  icon:'🌸',stage:3},
+    {id:'da4',name:'레전드 댄서',     icon:'🏆',stage:4},
+  ],
+  vocal:[
+    {id:'vo0',name:'마이크 스탠드',   icon:'🎙️',stage:0},
+    {id:'vo1',name:'보컬 교재',       icon:'📖',stage:1},
+    {id:'vo2',name:'데뷔 싱글',       icon:'💿',stage:2},
+    {id:'vo3',name:'음방 1위',        icon:'🥇',stage:3},
+    {id:'vo4',name:'메인보컬 크리스탈',icon:'👑',stage:4},
+  ],
+  rapper:[
+    {id:'ra0',name:'비트 헤드폰',     icon:'🎧',stage:0},
+    {id:'ra1',name:'랩 노트',         icon:'📝',stage:1},
+    {id:'ra2',name:'데뷔 믹스테이프', icon:'📀',stage:2},
+    {id:'ra3',name:'금목걸이',        icon:'⛓️',stage:3},
+    {id:'ra4',name:'래퍼 마이크',     icon:'🎤',stage:4},
+  ],
+};
+
+const DANCE_EMOJIS = ['💜','🎵','⭐','💫','🌸','🎀','✨','💎','🦋','🌟','🎊','🔮','💝','🎭','🌈','🎤'];
+const NOTE_TILES   = [
+  {k:'do',e:'🎵',c:'nd'},{k:'re',e:'🎶',c:'nr'},
+  {k:'mi',e:'🎼',c:'nm'},{k:'fa',e:'🎙️',c:'nf'},
+];
+const RAPPER_EMOJIS= ['🎤','🎧','🔥','🎵','💜','⚡','🌟','💎','👑'];
+const TOTAL_ROUNDS = 3;
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const EMPTY_COL = ()=>({
+  dance: [null,null,null,null,null],
+  vocal: [null,null,null,null,null],
+  rapper:[null,null,null,null,null]
+});
+const GRADE_ORD = {N:1,R:2,SR:3,UR:4};
+
+function starsToGrade(stageIdx, stars){
+  if(stars===0) return null;
+  if(stars===3 && stageIdx===4) return 'UR';
+  if(stars===3) return 'SR';
+  if(stars===2) return 'R';
+  return 'N';
+}
+function isAlbumComplete(g){ return S.collection[g].every(c=>c!==null); }
+function isGroupComplete(){  return ['dance','vocal','rapper'].every(isAlbumComplete); }
+
+const DEFAULT_ITEMS = ()=>({hint:0,boost:0,shield:0,revive:0,path:0,unlimited:0,erase:0,gold:0,fever:0,replay:0,nexthint:0,freeze:0,slow:0,rename:0});
+let S = {
+  character:null, genre:null, idolName:null,
+  stageStars:{dance:[0,0,0,0,0],vocal:[0,0,0,0,0],rapper:[0,0,0,0,0]},
+  stageScores:{dance:[0,0,0,0,0],vocal:[0,0,0,0,0],rapper:[0,0,0,0,0]},
+  collection:EMPTY_COL(),
+  items:DEFAULT_ITEMS(),
+  equippedItem:null,
+  activeSlot:null,
+  unlimitedExp:0,
+  coins:0,
+  lang:null
+};
+function genStars(g){return S.stageStars[g].reduce((a,b)=>a+b,0)}
+function genScore(g){return S.stageScores[g].reduce((a,b)=>a+b,0)}
+
+function save(){
+  try{localStorage.setItem('kidol_v6',JSON.stringify({
+    character:S.character, genre:S.genre, idolName:S.idolName,
+    stageStars:S.stageStars, stageScores:S.stageScores, collection:S.collection,
+    items:S.items, equippedItem:S.equippedItem, activeSlot:S.activeSlot,
+    unlimitedExp:S.unlimitedExp, coins:S.coins, lang:S.lang
+  }))}catch(e){}
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('kidol_v6')||'{}');
+    S.character    = d.character    || null;
+    S.genre        = d.genre        || null;
+    S.idolName     = d.idolName     || null;
+    S.stageStars   = d.stageStars   || {dance:[0,0,0,0,0],vocal:[0,0,0,0,0],rapper:[0,0,0,0,0]};
+    S.stageScores  = d.stageScores  || {dance:[0,0,0,0,0],vocal:[0,0,0,0,0],rapper:[0,0,0,0,0]};
+    S.collection   = d.collection   || EMPTY_COL();
+    S.items        = {...DEFAULT_ITEMS(), ...(d.items||{})};
+    S.equippedItem = d.equippedItem || null;
+    S.activeSlot   = d.activeSlot   || null;
+    S.unlimitedExp = d.unlimitedExp || 0;
+    S.coins        = d.coins        || 0;
+    S.lang         = d.lang         || null;
+    if(S.lang) currentLang=S.lang;
+    // 마이그레이션 v5 -> v6
+    if(!localStorage.getItem('kidol_v6') && localStorage.getItem('kidol_v5')) {
+      const old = JSON.parse(localStorage.getItem('kidol_v5')||'{}');
+      S.character = old.character; S.genre = old.genre;
+      S.stageStars = old.stageStars; S.stageScores = old.stageScores;
+      S.collection = old.collection;
+      S.idolName = old.character==='boy'?'준혁':'지민';
+    }
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════
+// PUZZLE STATE
+// ═══════════════════════════════════════════════
+let P={stageIdx:0,genre:'dance'};
+
+function startPuzzle(){
+  const g  = P.genre;
+  const cfg= GCFG[g].stages[P.stageIdx];
+  const stg= STAGES[P.stageIdx];
+
+  // 1시간 무제한 활성화 처리 (자동 소모)
+  if((S.items.unlimited||0)>0 && !isUnlimitedActive()){
+    const base=Math.max(Date.now(),S.unlimitedExp||0);
+    S.unlimitedExp=base+3600000;
+    S.items.unlimited--;
+  }
+
+  const autoUse = (key) => {
+    if((S.items[key]||0)>0) { 
+      if(!isUnlimitedActive()) S.items[key]--; 
+      return true; 
+    }
+    return false;
+  };
+
+  P={
+    stageIdx:P.stageIdx, genre:g, cfg:{...cfg}, stg,
+    seq:[], playerSeq:[], phase:'idle',
+    round:0, score:0, combo:0, maxScore:0, hitTime:0,
+    watchHandle:null,
+    // 장착형 패시브 플래그 (자동 소모)
+    hintActive:  autoUse('hint'),
+    boostActive: autoUse('boost'),
+    pathActive:  autoUse('path'),
+    // 즉발형 효과 상태
+    shieldReady: false, reviveReady:false, eraseReady:false,
+    goldActive:  false, goldEnd:0, goldTimer:null,
+    feverActive: false, feverHits:0,
+    slowActive:  false, slowTimer:null,
+    // rapper
+    beatsPerRound:cfg.beats||6, beatsDone:0,
+    hitsTotal:0, beatsTotal:0,
+    currentTile:-1, lastTile:-1, beatRAF:null,
+    // emojis
+    emojis:[...DANCE_EMOJIS].sort(()=>Math.random()-.5).slice(0,16)
+  };
+
+  // 부스터: 래퍼 판정 시간 확장
+  if(P.boostActive && g==='rapper') P.cfg.hitWindow=Math.round(P.cfg.hitWindow*1.15);
+
+  save();
+
+  // 장착형 아이템 배지 표시 (자동 활성화 안내)
+  const ib=document.getElementById('activeItemBadge');
+  let activeBadges = [];
+  if(P.hintActive) activeBadges.push(ITEM_CFG['hint'].icon);
+  if(P.boostActive) activeBadges.push(ITEM_CFG['boost'].icon);
+  if(P.pathActive) activeBadges.push(ITEM_CFG['path'].icon);
+  
+  if(isUnlimitedActive()){
+    ib.textContent=t('unlimited_badge');
+    ib.classList.add('show');
+  } else if(activeBadges.length > 0){
+    ib.textContent='✨ ' + activeBadges.join(' ');
+    ib.classList.add('show');
+  } else {
+    ib.classList.remove('show');
+  }
+
+  // 즉발형 아이템 바 렌더링
+  renderItemBar();
+
+  goTo('puzzle');
+  document.getElementById('pzStageName').textContent = stg.name;
+  document.getElementById('pzScore').textContent='0';
+  document.getElementById('comboDisplay').textContent='';
+
+  const bf=document.getElementById('beatFill');
+  bf.className='beat-fill'+(g==='rapper'?' gold':'');
+
+  document.getElementById('rapperBeats').style.display = g==='rapper'?'flex':'none';
+
+  buildGrid();
+  buildDots();
+  runCountdown();
+}
+
+// ── GRID BUILDERS ──────────────────────────────
+function buildGrid(){
+  const g=document.getElementById('tileGrid');
+  const genre=P.genre;
+  g.className='tile-grid '+genre;
+  g.innerHTML='';
+
+  if(genre==='dance'){
+    P.emojis.forEach((em,i)=>{
+      const t=document.createElement('div');
+      t.className='tile';t.dataset.i=i;t.textContent=em;
+      t.onclick=()=>onTap(i);g.appendChild(t);
+    });
+  } else if(genre==='vocal'){
+    NOTE_TILES.forEach((nt,i)=>{
+      const el=document.createElement('div');
+      el.className='tile '+nt.c;el.dataset.i=i;
+      el.innerHTML=`<span>${nt.e}</span><span class="note-name">${t('note_'+nt.k)}</span>`;
+      el.onclick=()=>onTap(i);g.appendChild(el);
+    });
+  } else {
+    RAPPER_EMOJIS.forEach((em,i)=>{
+      const t=document.createElement('div');
+      t.className='tile';t.dataset.i=i;t.textContent=em;
+      t.onclick=()=>onTap(i);g.appendChild(t);
+    });
+  }
+}
+
+function buildDots(){
+  const d=document.getElementById('roundDots');
+  d.innerHTML='';
+  for(let i=0;i<TOTAL_ROUNDS;i++){
+    const dot=document.createElement('div');
+    dot.className='round-dot';dot.id='dot'+i;d.appendChild(dot);
+  }
+}
+
+function buildRapperBeats(total){
+  const c=document.getElementById('rapperBeats');
+  c.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');d.className='beat-dot';d.id='bd'+i;c.appendChild(d);
+  }
+}
+
+// ── COUNTDOWN ──────────────────────────────────
+function runCountdown(){
+  P.phase='countdown'; let n=3;
+  SND.tick();
+  setPhase(`${n}`,'phase-ready','');
+  P.countdownIv=setInterval(()=>{
+    n--;
+    if(n>0){setPhase(`${n}`,'phase-ready','');SND.tick();}
+    else{clearInterval(P.countdownIv);SND.tick(true);nextRound();}
+  },700);
+}
+
+// ── ROUND ROUTER ───────────────────────────────
+function nextRound(){
+  if(P.round>=TOTAL_ROUNDS){endPuzzle();return;}
+  setDot(P.round,'current');
+
+  if(P.genre==='rapper'){
+    const bpr = P.cfg.beats + P.round*2;
+    P.beatsPerRound=bpr;
+    P.beatsDone=0;
+    P.beatsTotal+=bpr;
+    buildRapperBeats(bpr);
+    rapperNextBeat();
+  } else {
+    const tileMax = P.genre==='vocal'?4:16;
+    const len     = P.cfg.seqLen + P.round;
+    P.seq  = Array.from({length:len},()=>Math.floor(Math.random()*tileMax));
+    P.playerSeq=[];
+    beatFill(0,len);
+    if(P.genre==='dance') watchPhase();
+    else                  listenPhase();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DANCE ENGINE  (Simon Says)
+// ═══════════════════════════════════════════════
+function watchPhase(){
+  P.phase='watch';
+  setPhase(t('phase_watch_label'),'phase-watch',t('phase_watch'));
+  clearTiles();
+  const baseSpd=P.hintActive?P.cfg.speed+300:P.cfg.speed; let i=0;
+  const tick=()=>{
+    if(P.phase!=='watch')return;
+    const spd=P.slowActive?baseSpd*2:baseSpd;
+    if(i>0)unlit(P.seq[i-1]);
+    if(i>=P.seq.length){setTimeout(performPhase,baseSpd*.5);return;}
+    lit(P.seq[i]);cyanPop();beatFill(i+1,P.seq.length);i++;
+    P.watchHandle=setTimeout(tick,spd);
+  };
+  P.watchHandle=setTimeout(tick,380);
+}
+
+function performPhase(){
+  if(P.phase!=='watch')return;
+  P.phase='perform';P.playerSeq=[];P.hitTime=Date.now();
+  clearTiles();
+  setPhase(t('phase_perform_label'),'phase-perform',t('phase_perform'));
+  beatFill(0,P.seq.length);
+  if(P.pathActive) updatePathNums();
+}
+
+function onDanceTap(idx){
+  const exp=P.seq[P.playerSeq.length];
+  P.playerSeq.push(idx);
+  if(idx===exp){
+    tileClass(idx,'correct');P.combo++;SND.correct();
+    const effSpd=P.boostActive?P.cfg.speed*1.15:P.cfg.speed;
+    const base=Math.round((120+Math.max(0,(effSpd-(Date.now()-P.hitTime))*.3))*(1+P.combo*.08));
+    const pts=Math.round(base*calcMult());
+    if(P.feverActive){P.feverHits--;if(P.feverHits<=0){P.feverActive=false;}updateSlotState('fever');}
+    P.score+=pts;P.maxScore+=200;P.hitTime=Date.now();
+    updScore();beatFill(P.playerSeq.length,P.seq.length);
+    orangeFlash();spawnPt(idx,'+'+pts);
+    if(P.combo>=3)showCombo(P.combo);
+    if(P.pathActive)updatePathNums();
+    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;P.roundTimeout=setTimeout(nextRound,500);}
+  } else {
+    tileClass(idx,'wrong');SND.wrong();
+    if(P.eraseReady){
+      P.eraseReady=false;P.playerSeq.pop();
+      showMsg('🧹 ERASE!');
+      beatFill(P.playerSeq.length,P.seq.length);
+      if(P.pathActive)updatePathNums();
+    } else if(P.shieldReady){
+      P.shieldReady=false;showMsg('💠 SHIELD!');
+      updateSlotState('shield');
+      clearTimeout(P.watchHandle);
+      P.roundTimeout=setTimeout(()=>{clearTiles();watchPhase();},750);
+    } else if(P.reviveReady){
+      P.reviveReady=false;P.combo=0;P.playerSeq.pop();
+      showMsg('🩹 REVIVE!');
+      updateSlotState('revive');
+      beatFill(P.playerSeq.length,P.seq.length);
+      if(P.pathActive)updatePathNums();
+    } else {
+      P.combo=0;showMsg('MISS');
+      clearTimeout(P.watchHandle);
+      P.roundTimeout=setTimeout(()=>{clearTiles();watchPhase();},750);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// VOCAL ENGINE  (Melody Simon Says, 4 notes)
+// ═══════════════════════════════════════════════
+function listenPhase(){
+  P.phase='listen';
+  setPhase(t('phase_listen_label'),'phase-listen',t('phase_listen'));
+  clearTiles();
+  const baseSpd=P.hintActive?P.cfg.speed+300:P.cfg.speed; let i=0;
+  const tick=()=>{
+    if(P.phase!=='listen')return;
+    const spd=P.slowActive?baseSpd*2:baseSpd;
+    if(i>0)unlit(P.seq[i-1]);
+    if(i>=P.seq.length){setTimeout(singPhase,baseSpd*.5);return;}
+    lit(P.seq[i]);cyanPop();beatFill(i+1,P.seq.length);i++;
+    P.watchHandle=setTimeout(tick,spd);
+  };
+  P.watchHandle=setTimeout(tick,380);
+}
+
+function singPhase(){
+  if(P.phase!=='listen')return;
+  P.phase='sing';P.playerSeq=[];P.hitTime=Date.now();
+  clearTiles();
+  setPhase(t('phase_sing_label'),'phase-sing',t('phase_sing'));
+  beatFill(0,P.seq.length);
+  if(P.pathActive) updatePathNums();
+}
+
+function onVocalTap(idx){
+  const exp=P.seq[P.playerSeq.length];
+  P.playerSeq.push(idx);
+  if(idx===exp){
+    tileClass(idx,'correct');P.combo++;SND.note(idx);SND.correct();
+    const effSpd=P.boostActive?P.cfg.speed*1.15:P.cfg.speed;
+    const base=Math.round((130+Math.max(0,(effSpd-(Date.now()-P.hitTime))*.3))*(1+P.combo*.08));
+    const pts=Math.round(base*calcMult());
+    if(P.feverActive){P.feverHits--;if(P.feverHits<=0){P.feverActive=false;}updateSlotState('fever');}
+    P.score+=pts;P.maxScore+=220;P.hitTime=Date.now();
+    updScore();beatFill(P.playerSeq.length,P.seq.length);
+    orangeFlash();spawnPt(idx,'+'+pts);
+    if(P.combo>=3)showCombo(P.combo);
+    if(P.pathActive)updatePathNums();
+    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;P.roundTimeout=setTimeout(nextRound,500);}
+  } else {
+    tileClass(idx,'wrong');SND.wrong();
+    if(P.eraseReady){
+      P.eraseReady=false;P.playerSeq.pop();
+      showMsg('🧹 ERASE!');
+      beatFill(P.playerSeq.length,P.seq.length);
+      if(P.pathActive)updatePathNums();
+    } else if(P.shieldReady){
+      P.shieldReady=false;showMsg('💠 SHIELD!');
+      updateSlotState('shield');
+      clearTimeout(P.watchHandle);
+      P.roundTimeout=setTimeout(()=>{clearTiles();listenPhase();},750);
+    } else if(P.reviveReady){
+      P.reviveReady=false;P.combo=0;P.playerSeq.pop();
+      showMsg('🩹 REVIVE!');
+      updateSlotState('revive');
+      beatFill(P.playerSeq.length,P.seq.length);
+      if(P.pathActive)updatePathNums();
+    } else {
+      P.combo=0;showMsg('MISS');
+      clearTimeout(P.watchHandle);
+      P.roundTimeout=setTimeout(()=>{clearTiles();listenPhase();},750);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RAPPER ENGINE  (Beat reaction)
+// ═══════════════════════════════════════════════
+function rapperNextBeat(){
+  if(P.beatsDone>=P.beatsPerRound){
+    P.phase='rapper-idle';
+    clearTiles();
+    setDot(P.round,'done');P.round++;
+    P.roundTimeout=setTimeout(nextRound,600);return;
+  }
+  P.phase='rapper-idle';
+  clearTiles();
+  P.beatTimeout=setTimeout(()=>{
+    if(P.phase!=='rapper-idle')return;
+    let cands=Array.from({length:9},(_,i)=>i).filter(i=>i!==P.lastTile);
+    const next=cands[Math.floor(Math.random()*cands.length)];
+    P.lastTile=next;P.currentTile=next;
+    P.beatsDone++;P.lastBeatStart=Date.now();
+    P.phase='rapper-go';
+    lit(next);
+    setPhase('GO!','phase-go',t('rapper_beat',{n:P.beatsDone,t:P.beatsPerRound}));
+    startBeatCountdown();
+  },P.cfg.gap);
+}
+
+function startBeatCountdown(){
+  cancelAnimationFrame(P.beatRAF);
+  const start=Date.now();const hw=P.cfg.hitWindow;
+  const el=document.getElementById('beatFill');
+  const tick=()=>{
+    if(P.phase!=='rapper-go')return;
+    const pct=Math.max(0,100-(Date.now()-start)/hw*100);
+    el.style.width=pct+'%';
+    if(pct<=0){rapperMiss();}
+    else{P.beatRAF=requestAnimationFrame(tick);}
+  };
+  P.beatRAF=requestAnimationFrame(tick);
+}
+
+function onRapperTap(idx){
+  if(P.phase!=='rapper-go')return;
+  if(idx===P.currentTile){
+    cancelAnimationFrame(P.beatRAF);
+    P.hitsTotal++;P.combo++;
+    const react=Date.now()-P.lastBeatStart;
+    const base=Math.round((100+Math.max(0,(P.cfg.hitWindow-react)/P.cfg.hitWindow*150))*(1+P.combo*.1));
+    const pts=Math.round(base*calcMult());
+    if(P.feverActive){P.feverHits--;if(P.feverHits<=0){P.feverActive=false;}updateSlotState('fever');}
+    P.score+=pts;
+    tileClass(idx,'correct');SND.rapperHit();orangeFlash();spawnPt(idx,'+'+pts);
+    updScore();markBeat(P.beatsDone-1,'hit');
+    if(P.combo>=3)showCombo(P.combo);
+    rapperNextBeat();
+  } else {
+    tileClass(idx,'wrong');
+  }
+}
+
+function rapperMiss(){
+  P.phase='rapper-idle';
+  if(P.eraseReady){
+    P.eraseReady=false;showMsg('🧹 ERASE!');
+    SND.correct();
+    unlit(P.currentTile);
+    rapperNextBeat();
+    return;
+  }
+  if(P.shieldReady){P.shieldReady=false;showMsg('💠 SHIELD!');updateSlotState('shield');}
+  else{P.combo=0;showMsg('MISS!');}
+  SND.wrong();
+  unlit(P.currentTile);tileClass(P.currentTile,'wrong');
+  markBeat(P.beatsDone-1,'miss');
+  rapperNextBeat();
+}
+
+function markBeat(i,state){
+  const d=document.getElementById('bd'+i);
+  if(d)d.className='beat-dot '+state;
+}
+
+// ── UNIFIED TAP ───────────────────────────────
+function onTap(idx){
+  if(P.genre==='dance'  && P.phase==='perform') onDanceTap(idx);
+  else if(P.genre==='vocal' && P.phase==='sing')  onVocalTap(idx);
+  else if(P.genre==='rapper') onRapperTap(idx);
+}
+
+// ── END PUZZLE ────────────────────────────────
+function endPuzzle(){
+  P.phase='done';clearTiles();cancelAnimationFrame(P.beatRAF);
+  clearInterval(P.goldTimer);clearTimeout(P.slowTimer);
+  let stars;
+  if(P.genre==='rapper'){
+    const rate=P.beatsTotal>0?P.hitsTotal/P.beatsTotal:0;
+    stars=rate>=.90?3:rate>=.75?2:rate>=.60?1:0;
+  } else {
+    const r=P.maxScore>0?P.score/P.maxScore:0;
+    stars=r>=.90?3:r>=.70?2:r>=.50?1:0;
+  }
+  S.stageStars[P.genre][P.stageIdx]=Math.max(S.stageStars[P.genre][P.stageIdx],stars);
+
+  // 최고 점수 갱신
+  const prevBest = S.stageScores[P.genre][P.stageIdx] || 0;
+  const isNewRecord = P.score > prevBest;
+  if(isNewRecord) { S.stageScores[P.genre][P.stageIdx] = P.score; }
+
+  // 포토카드 등급 계산
+  const grade   = starsToGrade(P.stageIdx, stars);
+  const cur     = S.collection[P.genre][P.stageIdx];
+  const isNew   = !cur;
+  const isUpg   = cur && grade && GRADE_ORD[grade] > GRADE_ORD[cur.grade];
+  if(grade && (isNew || isUpg)) S.collection[P.genre][P.stageIdx] = {grade, stars};
+
+  const droppedItem=dropItem(stars);
+  if(droppedItem)addItem(droppedItem);
+
+  // 팬 코인 지급
+  const prevStars = S.stageStars[P.genre][P.stageIdx];
+  const isFirstClear = prevStars === 0;
+  const earnedCoins = stars>0 ? (stars * 10 + (stars===3 ? 20 : 0) + (isFirstClear ? 30 : 0)) : 0;
+  S.coins = (S.coins||0) + earnedCoins;
+
+  save();
+
+  const reward = (grade && (isNew || isUpg)) ? {grade, isNew} : null;
+  if(isNew && stars>0) goldExplosion(()=>showResult(stars, reward, isNewRecord, droppedItem, earnedCoins));
+  else      showResult(stars, reward, isNewRecord, droppedItem, earnedCoins);
+}
+
+function showResult(stars,newItem,isNewRecord,droppedItem,earnedCoins){
+  goTo('result');
+  BGM.stop();
+  if(stars>0) setTimeout(()=>SND.starFanfare(stars), 200);
+  document.getElementById('resultIdol').innerHTML=charPortraitHTML(S.character||'girl',80);
+  document.getElementById('resultTitle').textContent=
+    t(stars===3?'result_perfect':stars===2?'result_great':stars===1?'result_good':'result_fail');
+  document.getElementById('resultScore').textContent=P.score.toLocaleString();
+  
+  const nrEl = document.getElementById('resultNewRecord');
+  if(nrEl) {
+    if(isNewRecord && P.score > 0) {
+      nrEl.style.display='block';
+      setTimeout(()=>SND.goldFanfare(), 600);
+    } else {
+      nrEl.style.display='none';
+    }
+  }
+
+  document.getElementById('resultStars').innerHTML=
+    [1,2,3].map(n=>`<span class="result-star">${n<=stars?'⭐':'☆'}</span>`).join('');
+  const rw=document.getElementById('itemReward');
+  if(newItem){
+    rw.style.display='block';
+    const cols={N:'#888',R:'#3b82f6',SR:'#a855f7',UR:'#FFD700'};
+    const icons={N:'🃏',R:'🃏',SR:'✨',UR:'👑'};
+    document.getElementById('rewardIcon').textContent=icons[newItem.grade]||'🃏';
+    document.getElementById('rewardName').innerHTML=
+      `<span style="color:${cols[newItem.grade]};font-weight:700">${newItem.grade}</span> ${t('photocard')} ${newItem.isNew?t('card_new'):t('card_upgrade')}!`;
+  } else rw.style.display='none';
+
+  // 아이템 드롭 표시
+  const dropBox=document.getElementById('itemDropBox');
+  if(dropBox){
+    if(droppedItem&&ITEM_CFG[droppedItem]){
+      dropBox.style.display='block';
+      document.getElementById('dropIcon').textContent=ITEM_CFG[droppedItem].icon;
+      document.getElementById('dropName').textContent=ITEM_CFG[droppedItem].name;
+    } else {
+      dropBox.style.display='none';
+    }
+  }
+
+  // 코인 획득 표시
+  const coinBox=document.getElementById('resultCoinBox');
+  if(coinBox){
+    coinBox.style.display='flex';
+    document.getElementById('resultCoinVal').textContent='+'+earnedCoins;
+    document.getElementById('resultCoinTotal').textContent=t('coin_total',{n:(S.coins||0).toLocaleString()});
+  }
+
+  // 오늘의 미니 랭킹 렌더링
+  const miniBox = document.getElementById('miniRankBox');
+  if(miniBox) {
+    miniBox.style.display='flex';
+    const listEl = document.getElementById('miniRankList');
+    const myName = (S.idolName||'나')+' (나)';
+    
+    // 현재 점수(P.score) 주변으로 가짜 플레이어 점수 생성
+    const r1 = Math.floor(Math.random()*1000) + 500;
+    const r2 = Math.floor(Math.random()*1500) + 1000;
+    
+    let mockDaily = [
+      { n: '김연습', s: P.score > 0 ? P.score + r1 : 1500 },
+      { n: myName, s: P.score, isMe: true },
+      { n: '박초보', s: Math.max(0, P.score - r2) }
+    ];
+    
+    // 만약 점수가 0점이면 꼴등으로 배치
+    if(P.score === 0) {
+      mockDaily = [
+        { n: '김연습', s: 1500 },
+        { n: '박초보', s: 800 },
+        { n: myName, s: 0, isMe: true }
+      ];
+    }
+    
+    mockDaily.sort((a,b)=>b.s - a.s);
+    
+    listEl.innerHTML = mockDaily.map((p, i) => {
+      let cls = 'mini-rank-item';
+      if(p.isMe) cls += ' me';
+      return `<div class="${cls}">
+        <span><b style="color:${i===0?'var(--gold)':'inherit'}">${t('rank_pos',{n:i+1})}</b> &nbsp; ${p.n}</span>
+        <span class="mini-rank-score">${p.s.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function quitPuzzle(){
+  P.phase='idle';
+  clearTimeout(P.watchHandle);
+  cancelAnimationFrame(P.beatRAF);
+  clearInterval(P.countdownIv);
+  clearTimeout(P.roundTimeout);
+  clearTimeout(P.beatTimeout);
+  clearInterval(P.goldTimer);
+  clearTimeout(P.slowTimer);
+  goTo('stages');
+}
+
+// ═══════════════════════════════════════════════
+// TILE HELPERS
+// ═══════════════════════════════════════════════
+function tile(i){return document.querySelector(`.tile[data-i="${i}"]`)}
+function lit(i){
+  const t=tile(i);if(!t)return;
+  t.classList.remove('correct','wrong');t.classList.add('lit');
+  if(P.genre==='vocal' && P.phase==='listen') SND.note(i);
+  else if(P.genre==='dance' && P.phase==='watch') SND.tileWatch();
+  else if(P.genre==='rapper' && P.phase==='rapper-go') SND.beatAppear();
+}
+function unlit(i){const t=tile(i);if(t)t.classList.remove('lit','correct','wrong');}
+function clearTiles(){document.querySelectorAll('.tile').forEach(t=>t.classList.remove('lit','correct','wrong'));}
+function tileClass(i,cls){
+  const t=tile(i);if(!t)return;
+  t.classList.remove('lit','correct','wrong');t.classList.add(cls);
+  setTimeout(()=>t.classList.remove(cls),300);
+}
+
+// ═══════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════
+function setPhase(text,cls,hint){
+  const l=document.getElementById('phaseLabel');
+  l.textContent=text;l.className='phase-label '+cls;
+  document.getElementById('phaseHint').textContent=hint;
+}
+function beatFill(cur,total){
+  document.getElementById('beatFill').style.width=(total>0?cur/total*100:0)+'%';
+}
+function updScore(){document.getElementById('pzScore').textContent=P.score;}
+function setDot(i,st){const d=document.getElementById('dot'+i);if(d)d.className='round-dot '+st;}
+function showCombo(n){
+  SND.combo(n);
+  const el=document.getElementById('comboDisplay');
+  el.textContent=n+' COMBO!';el.className='combo-display pop';
+  setTimeout(()=>el.className='combo-display',500);
+}
+function showMsg(msg){document.getElementById('comboDisplay').textContent=msg;}
+
+function cyanPop(){
+  const el=document.getElementById('flashEl');
+  el.style.background='rgba(0,255,255,.07)';
+  setTimeout(()=>el.style.background='',100);
+}
+function orangeFlash(){
+  const el=document.getElementById('flashEl');
+  el.style.background='rgba(255,107,0,.13)';
+  setTimeout(()=>el.style.background='',80);
+}
+function goldExplosion(cb){
+  SND.goldFanfare();
+  const el=document.getElementById('goldBurst');
+  el.classList.add('active');
+  const ems=['✨','⭐','💛','🌟','💫'];
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div');p.className='burst-particle';
+    p.textContent=ems[i%ems.length];
+    const a=(i/14)*360,d=80+Math.random()*80;
+    p.style.setProperty('--tx',Math.cos(a*Math.PI/180)*d+'px');
+    p.style.setProperty('--ty',(Math.sin(a*Math.PI/180)*d-60)+'px');
+    p.style.setProperty('--dur',(.7+Math.random()*.5)+'s');
+    p.style.cssText+=';left:50%;top:50%;margin:-12px 0 0 -12px';
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1400);
+  }
+  setTimeout(()=>{el.classList.remove('active');if(cb)cb();},1200);
+}
+function spawnPt(idx,text){
+  const t=tile(idx);if(!t)return;
+  const r=t.getBoundingClientRect();
+  const p=document.createElement('div');p.className='float-particle';p.textContent=text;
+  p.style.left=(r.left+r.width/2-16)+'px';p.style.top=r.top+'px';
+  document.body.appendChild(p);setTimeout(()=>p.remove(),950);
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  if(id==='stages')  renderStages();
+  if(id==='title')   {renderTitle(); BGM.play('title');}
+  if(id==='genre')   renderGenre();
+  if(id==='puzzle')  BGM.playGenre(P.genre, P.stageIdx);
+  if(id==='shop')    renderShop();
+}
+
+function charPortraitHTML(ch,size){
+  if(!ch) return '<span style="font-size:'+(size*.8)+'px">🌟</span>';
+  return '<div class="char-portrait '+ch+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%"></div>';
+}
+function startGame(){
+  if(S.idolName) goTo('genre');
+  else goTo('profile');
+}
+function renderTitle(){
+  document.getElementById('titleIdol').innerHTML=charPortraitHTML(S.character,90);
+  document.getElementById('continueBtn').style.display=
+    (S.idolName&&S.genre)?'block':'none';
+}
+
+function renderGenre(){
+  document.querySelectorAll('.genre-card').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.g===S.genre);
+  });
+}
+
+function renderStages(){
+  const g=S.genre||'dance';
+  const name=S.idolName||'연습생_001';
+  document.getElementById('heroIdol').innerHTML=charPortraitHTML(S.character||'girl',60);
+  document.getElementById('heroName').textContent=name;
+
+  const badge=document.getElementById('genreBadge');
+  badge.textContent=t('label_'+g);
+  badge.className='genre-badge '+g;
+
+  const tot=genStars(g);
+  document.getElementById('starsLabel').textContent=`⭐ ${tot} / 15`;
+  const cl=document.getElementById('coinsLabel');
+  if(cl) cl.textContent=`🪙 ${(S.coins||0).toLocaleString()}`;
+  document.getElementById('growthFill').style.width=Math.min(100,tot/15*100)+'%';
+
+  const list=document.getElementById('stageList');
+  list.innerHTML='';
+  STAGES.forEach((stg,i)=>{
+    const stgData=stageData(i);
+    const earned=S.stageStars[g][i];
+    const unlocked=tot>=stg.need;
+    const el=document.createElement('div');
+    el.className='stage-item '+(unlocked?'unlocked':'locked');
+    el.dataset.lv=i;
+    const sh=[1,2,3].map(n=>`<span class="${n<=earned?'sf':'se'}">★</span>`).join('');
+    const best = S.stageScores[g][i] || 0;
+    el.innerHTML=`
+      <div class="stage-icon">${stg.icon}</div>
+      <div class="stage-info">
+        <div class="stage-name">${stgData.name}</div>
+        <div class="stage-desc">${stgData.desc}</div>
+        ${!unlocked?`<div class="stage-need">${t('stage_need',{n:stg.need})}</div>`:`<div class="stage-best">${t('stage_best',{n:best.toLocaleString()})}</div>`}
+      </div>
+      <div class="stage-stars">${sh}</div>`;
+    if(unlocked) el.onclick = () => {
+      pendingStageIdx = i;
+      pendingGenre = g;
+      startWithItems(null, null);
+    };
+    list.appendChild(el);
+  });
+
+  // 장착형 아이템 보유현황
+  const bag=document.getElementById('stageItemBag');
+  if(bag){
+    const passiveKeys=['hint','boost','path','unlimited'];
+    const passiveRows=passiveKeys.map(k=>{
+      const cfg=ITEM_CFG[k];
+      const cnt=S.items[k]||0;
+      return `<div class="sib-item${cnt<=0?' sib-empty':''}">
+        <div class="sib-icon">${cfg.icon}</div>
+        <div class="sib-name">${cfg.name}</div>
+        <div class="sib-count">${cnt>0?'×'+cnt:t('item_none')}</div>
+      </div>`;
+    }).join('');
+    const rb=document.getElementById('renameBadge');
+    if(rb){
+      rb.style.display=(S.items.rename>0)?'inline-block':'none';
+    }
+    bag.innerHTML=`<div class="stage-item-bag">
+      <div class="sib-title">${t('passive_items')} (자동 적용)</div>
+      <div class="sib-row">${passiveRows}</div>
+    </div>`;
+  }
+}
+
+function selectGenre(g){
+  S.genre=g;save();
+  document.querySelectorAll('.genre-card').forEach(c=>{
+    c.classList.toggle('selected',c.dataset.g===g);
+  });
+  setTimeout(()=>goTo('stages'),300);
+}
+
+let rankFilter='dance';
+const MOCK_PLAYERS = {
+  dance: [
+    {n:'K-POP전설', s:185000}, {n:'춤신춤왕', s:142000}, {n:'메인댄서', s:98000},
+    {n:'리드댄서', s:76000}, {n:'퍼포머', s:54000}, {n:'백업댄서', s:32000},
+    {n:'안무가', s:21000}, {n:'데뷔조', s:15000}, {n:'연습생', s:8000}
+  ],
+  vocal: [
+    {n:'국민가수', s:195000}, {n:'메인보컬', s:152000}, {n:'리드보컬', s:108000},
+    {n:'음색깡패', s:86000}, {n:'고음셔틀', s:64000}, {n:'코러스', s:42000},
+    {n:'가이드보컬', s:28000}, {n:'데뷔조', s:18000}, {n:'연습생', s:9000}
+  ],
+  rapper: [
+    {n:'랩갓', s:175000}, {n:'메인래퍼', s:132000}, {n:'쇼미더', s:88000},
+    {n:'리드래퍼', s:66000}, {n:'속사포', s:44000}, {n:'라임장인', s:25000},
+    {n:'언더그라운드', s:17000}, {n:'데뷔조', s:11000}, {n:'연습생', s:6000}
+  ]
+};
+
+// ═══════════════════════════════════════════════
+// ITEM SYSTEM DATA
+// ═══════════════════════════════════════════════
+const ITEM_CFG_BASE = {
+  hint:     {type:'passive',icon:'🔍',color:'var(--cyan)'},
+  boost:    {type:'passive',icon:'🚀',color:'var(--gold)'},
+  path:     {type:'passive',icon:'🗺️',color:'var(--orange)'},
+  unlimited:{type:'passive',icon:'⏰',color:'var(--gold)'},
+  shield:   {type:'active', icon:'💠',color:'#a855f7'},
+  revive:   {type:'active', icon:'🩹',color:'#22c55e'},
+  erase:    {type:'active', icon:'🧹',color:'#ef4444'},
+  gold:     {type:'active', icon:'💎',color:'var(--gold)'},
+  fever:    {type:'active', icon:'🔥',color:'var(--orange)'},
+  replay:   {type:'active', icon:'🔁',color:'var(--cyan)'},
+  nexthint: {type:'active', icon:'💡',color:'#fbbf24'},
+  freeze:   {type:'active', icon:'❄️',color:'#60a5fa'},
+  slow:     {type:'active', icon:'🐢',color:'#c084fc'},
+  rename:   {type:'special',icon:'✏️',color:'#f472b6'},
+};
+// name/desc는 현재 언어로 동적 반환
+const ITEM_CFG = new Proxy(ITEM_CFG_BASE, {
+  get(target, key){
+    if(!target[key]) return undefined;
+    return {...target[key], name:t('item_'+key+'_name'), desc:t('item_'+key+'_desc')};
+  }
+});
+const ITEM_DROP_TABLE = {
+  1:[['hint',45],['boost',35],['revive',12],['shield',8]],
+  2:[['hint',20],['boost',18],['shield',16],['revive',14],['nexthint',14],['path',10],['gold',8]],
+  3:[['gold',24],['fever',20],['shield',14],['revive',12],['nexthint',12],['path',10],['hint',4],['boost',4]],
+};
+// 인게임 즉발형 아이템 바에 표시할 5종
+const ACTIVE_BAR_KEYS = ['hint','erase','nexthint','freeze','slow'];
+
+function viewRanking(){
+  rankFilter=S.genre||'dance';
+  renderRanking();
+  document.getElementById('rankBackBtn').onclick=()=>goTo(S.genre?'stages':'title');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-ranking').classList.add('active');
+}
+
+function filterRank(g){
+  rankFilter=g;
+  renderRanking();
+}
+
+function renderRanking(){
+  document.querySelectorAll('.rank-tab').forEach(t=>{
+    t.classList.remove('active');
+    if(t.classList.contains(rankFilter)) t.classList.add('active');
+  });
+
+  const myScore = genScore(rankFilter);
+  let list = [...MOCK_PLAYERS[rankFilter]];
+  list.push({ n: (S.idolName||t('rank_me'))+' ('+t('rank_me')+')', s: myScore, isMe: true });
+  list.sort((a,b)=>b.s - a.s);
+
+  let myRank = -1;
+  const html = list.map((p, i) => {
+    if(p.isMe) myRank = i + 1;
+    let cls = 'rank-card';
+    let icon = '👤';
+    if(p.isMe) cls += ' me';
+    if(i===0) { cls += ' top1'; icon = '👑'; }
+    else if(i===1) { cls += ' top2'; icon = '🥈'; }
+    else if(i===2) { cls += ' top3'; icon = '🥉'; }
+    
+    return `<div class="${cls}">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${p.n}</div>
+        <div class="rank-score">${p.s.toLocaleString()}</div>
+      </div>
+      <div class="rank-icon">${icon}</div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('rankList').innerHTML = html;
+  document.getElementById('myRankFixed').innerHTML = `
+    <div class="rank-card me" style="width:100%;max-width:360px;margin:0">
+      <div class="rank-num">${myRank}</div>
+      <div class="rank-info">
+        <div class="rank-name">${t('rank_my_score',{genre:rankFilter.toUpperCase()})}</div>
+        <div class="rank-score">${myScore.toLocaleString()}</div>
+      </div>
+      <div class="rank-icon">⭐</div>
+    </div>
+  `;
+}
+
+function viewCollection(){
+  colFilter='dance';renderCollection();
+  document.getElementById('colBackBtn').onclick=()=>goTo(S.genre?'stages':'title');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-collection').classList.add('active');
+}
+
+let colFilter='dance';
+function filterCol(g){
+  colFilter=g;
+  document.querySelectorAll('.col-tab').forEach(t=>{
+    t.classList.remove('active');
+    if(t.classList.contains(g))t.classList.add('active');
+  });
+  renderCollection();
+}
+
+function renderCollection(){
+  const genres=['dance','vocal','rapper'];
+  // 전체 수집 카운트
+  const total    = genres.reduce((a,g)=>a+S.collection[g].filter(c=>c!==null).length,0);
+  document.getElementById('colSub').textContent=t('col_sub',{n:total});
+
+  // 그룹 앨범 섹션
+  const gs = document.getElementById('groupAlbumSection');
+  if(isGroupComplete()){
+    gs.innerHTML=`<div class="group-album">
+      <div class="group-album-icon">💿</div>
+      <div class="group-album-title">${t('col_group_complete_title')}</div>
+      <div class="group-album-desc">${t('col_group_complete_desc')}</div>
+    </div>`;
+  } else gs.innerHTML='';
+
+  // 앨범 진행 바
+  const cleared = S.collection[colFilter].filter(c=>c!==null).length;
+  document.getElementById('albumName').textContent = t('album_'+colFilter);
+  document.getElementById('albumCount').textContent = `${cleared} / 5`;
+  const fill = document.getElementById('albumFill');
+  fill.style.width = (cleared/5*100)+'%';
+  fill.className = 'album-progress-fill '+colFilter;
+
+  // 포토카드 그리드
+  const ch   = S.character||'girl';
+  const grid = document.getElementById('colGrid');
+  grid.innerHTML='';
+  
+  const gIdx = genres.indexOf(colFilter);
+
+  ITEMS[colFilter].forEach((item,idx)=>{
+    const card = S.collection[colFilter][idx];
+    const stg  = stageData(idx);
+    const el   = document.createElement('div');
+
+    if(card){
+      // 획득한 카드
+      const stars = '★'.repeat(card.stars)+'☆'.repeat(3-card.stars);
+      const globalIdx = gIdx * 5 + idx; // 0 ~ 14
+      let imgNum;
+      if (ch === 'boy') {
+        const boyMap = [1,2,3,4,5,6,7,8,9,10,12,1,2,3,4]; // 11번 이미지 누락 처리
+        imgNum = boyMap[globalIdx];
+      } else {
+        imgNum = (globalIdx % 12) + 1; // 1 ~ 12
+      }
+      const bgImg = `images/card-${ch}-${imgNum}.png`;
+      
+      el.className=`photo-card ${colFilter} g${card.grade}`;
+      el.innerHTML=`
+        <div class="card-grade-badge">${card.grade}</div>
+        <div class="card-portrait" style="background-image:url('${bgImg}')"></div>
+        <div class="card-info">
+          <div class="card-stage-nm">${stg.name}</div>
+          <div class="card-stars-row">${stars}</div>
+          <div class="card-item-nm">${t('item_'+item.id+'_name')}</div>
+        </div>
+        <div class="card-upg-bar"><div class="card-upg-fill"></div></div>`;
+    } else {
+      // 잠긴 카드
+      const hint = idx===0 ? t('col_hint_first') : t('col_hint_need',{n:stg.need});
+      el.className=`photo-card locked`;
+      el.innerHTML=`
+        <div class="card-lock-area">
+          <div class="card-lock-icon">🔒</div>
+          <div class="card-hint">${hint}</div>
+        </div>
+        <div class="card-info">
+          <div class="card-stage-nm">${stg.name}</div>
+          <div class="card-stars-row" style="color:#444">☆☆☆</div>
+          <div class="card-item-nm">???</div>
+        </div>`;
+    }
+    grid.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ITEM SYSTEM FUNCTIONS
+// ═══════════════════════════════════════════════
+function isUnlimitedActive(){ return S.unlimitedExp>0&&Date.now()<S.unlimitedExp; }
+
+function unlimitedRemainMins(){
+  return isUnlimitedActive()?Math.ceil((S.unlimitedExp-Date.now())/60000):0;
+}
+
+function dropItem(stars){
+  const thresh={1:.35,2:.60,3:.95};
+  if(Math.random()>(thresh[stars]||.35))return null;
+  const pool=ITEM_DROP_TABLE[stars]||ITEM_DROP_TABLE[1];
+  const total=pool.reduce((a,b)=>a+b[1],0);
+  let r=Math.random()*total,cum=0;
+  for(const[k,w]of pool){cum+=w;if(r<=cum)return k;}
+  return pool[0][0];
+}
+
+function addItem(key){
+  if(!key)return;
+  if(key==='unlimited'){
+    const base=Math.max(Date.now(),S.unlimitedExp||0);
+    S.unlimitedExp=base+3600000;
+  } else {
+    S.items[key]=(S.items[key]||0)+1;
+  }
+}
+
+function consumeItem(key){
+  if(!key||key==='unlimited')return;
+  if(isUnlimitedActive())return;
+  if((S.items[key]||0)>0)S.items[key]--;
+}
+
+// ═══════════════════════════════════════════════
+// ITEM SHOP
+// ═══════════════════════════════════════════════
+const SHOP_PRICE = {
+  // 즉발형
+  nexthint:20, shield:30, revive:40, gold:50, fever:60,
+  erase:35, replay:45, freeze:40, slow:30,
+  // 장착형
+  hint:35, boost:45, path:55, unlimited:200,
+  // 특수
+  rename:100,
+};
+
+let shopCurrentTab='active';
+let buyPendingKey=null;
+
+function openShop(){
+  shopCurrentTab='active';
+  renderShop();
+  goTo('shop');
+}
+
+function switchShopTab(tab){
+  shopCurrentTab=tab;
+  document.querySelectorAll('.shop-tab').forEach(t=>{
+    t.classList.toggle('active', t.id==='shopTab-'+tab);
+  });
+  renderShopGrid();
+}
+
+function renderShop(){
+  document.getElementById('shopCoinsVal').textContent=(S.coins||0).toLocaleString();
+  document.querySelectorAll('.shop-tab').forEach(t=>{
+    t.classList.toggle('active', t.id==='shopTab-'+shopCurrentTab);
+  });
+  renderShopGrid();
+}
+
+function renderShopGrid(){
+  const grid=document.getElementById('shopGrid');
+  grid.innerHTML='';
+  document.getElementById('shopCoinsVal').textContent=(S.coins||0).toLocaleString();
+
+  // 탭에 맞는 아이템 필터
+  const keys=Object.keys(ITEM_CFG).filter(k=>ITEM_CFG[k].type===shopCurrentTab && SHOP_PRICE[k]!==undefined);
+
+  keys.forEach(key=>{
+    const cfg=ITEM_CFG[key];
+    const price=SHOP_PRICE[key];
+    const owned=key==='unlimited'
+      ? (isUnlimitedActive()?t('item_active'):( (S.items[key]||0)>0?'×'+(S.items[key]):'0'))
+      : (S.items[key]||0)>0?'×'+(S.items[key]):'0';
+    const isSpecial=cfg.type==='special';
+    const canAfford=(S.coins||0)>=price;
+
+    const card=document.createElement('div');
+    card.className='shop-card'+(isSpecial?' special':'');
+    card.style.borderColor=cfg.color+'33';
+    card.innerHTML=`
+      <div class="sc-owned${isSpecial?' special-badge':''}">${owned}</div>
+      <div class="sc-icon">${cfg.icon}</div>
+      <div class="sc-name">${cfg.name}</div>
+      <div class="sc-desc">${cfg.desc}</div>
+      <div class="sc-price" style="${canAfford?'':'opacity:.45'}">
+        <span class="sc-price-icon">🪙</span>
+        <span class="sc-price-val">${price}</span>
+      </div>`;
+    card.onclick=()=>openBuyModal(key);
+    grid.appendChild(card);
+  });
+
+  if(keys.length===0){
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);padding:40px 0;font-size:.8rem">${t('shop_no_items')}</div>`;
+  }
+}
+
+function openBuyModal(key){
+  const cfg=ITEM_CFG[key];
+  const price=SHOP_PRICE[key];
+  buyPendingKey=key;
+  document.getElementById('bmIcon').textContent=cfg.icon;
+  document.getElementById('bmName').textContent=cfg.name;
+  document.getElementById('bmDesc').textContent=cfg.desc;
+  document.getElementById('bmPrice').textContent=price;
+  document.getElementById('bmBalance').textContent=(S.coins||0).toLocaleString();
+  document.getElementById('bmErr').textContent='';
+  const enough=(S.coins||0)>=price;
+  document.getElementById('bmConfirmBtn').style.opacity=enough?'1':'.4';
+  document.getElementById('bmConfirmBtn').style.pointerEvents=enough?'auto':'none';
+  document.getElementById('buyModal').style.display='flex';
+}
+
+function closeBuyModal(){
+  document.getElementById('buyModal').style.display='none';
+  buyPendingKey=null;
+}
+
+function confirmBuy(){
+  const key=buyPendingKey;
+  if(!key) return;
+  const price=SHOP_PRICE[key];
+  if((S.coins||0)<price){
+    document.getElementById('bmErr').textContent=t('buy_err_coins');
+    return;
+  }
+  S.coins-=price;
+  addItem(key);
+  save();
+  closeBuyModal();
+  renderShopGrid();
+  showMsg(t('msg_buy_success',{icon:ITEM_CFG[key].icon}));
+}
+
+// ── ITEM EQUIP UI ─────────────────────────────
+let currentPassive=null, currentActive=null;
+let pendingStageIdx=0, pendingGenre='dance';
+
+function showItemEquip(si,g){
+  pendingStageIdx=si; pendingGenre=g;
+  currentPassive=S.equippedItem||null;
+  currentActive=S.activeSlot||null;
+  renderItemEquip();
+  const el=document.getElementById('itemEquipPanel');
+  if(el) el.style.display='flex';
+}
+
+function closeItemEquip(){
+  const el=document.getElementById('itemEquipPanel');
+  if(el) el.style.display='none';
+}
+
+function renderItemEquip(){
+  renderPassiveGrid();
+  renderActiveGrid();
+}
+
+function renderPassiveGrid(){
+  const grid=document.getElementById('iePassiveGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  const keys=['hint','boost','path','unlimited'];
+  keys.forEach(key=>{
+    const cfg=ITEM_CFG[key];
+    let countTxt,isEmpty;
+    if(key==='unlimited'){
+      const active=isUnlimitedActive();
+      if(active){countTxt='⏳'+unlimitedRemainMins()+t('unit_min');isEmpty=false;}
+      else if((S.items.unlimited||0)>0){countTxt='x'+S.items.unlimited;isEmpty=false;}
+      else{countTxt='x0';isEmpty=true;}
+    } else {
+      const n=S.items[key]||0; countTxt='x'+n; isEmpty=n===0;
+    }
+    const sel=currentPassive===key;
+    const card=document.createElement('div');
+    card.className='ie-card'+(isEmpty?' empty':'')+(sel?' selected':'');
+    card.innerHTML=`<div class="ie-card-icon">${cfg.icon}</div>
+      <div class="ie-card-name">${cfg.name}</div>
+      <div class="ie-card-count">${countTxt}</div>`;
+    if(!isEmpty && pendingStageIdx>=0) card.onclick=()=>{
+      currentPassive=(currentPassive===key)?null:key;
+      renderPassiveGrid(); updatePassiveDesc();
+    };
+    grid.appendChild(card);
+  });
+  updatePassiveDesc();
+}
+
+function renderActiveGrid(){
+  const grid=document.getElementById('ieActiveGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  const keys=['shield','revive','erase','gold','fever','replay','nexthint','freeze','slow'];
+  keys.forEach(key=>{
+    const cfg=ITEM_CFG[key];
+    const n=S.items[key]||0; const isEmpty=n===0;
+    const sel=currentActive===key;
+    const card=document.createElement('div');
+    card.className='ie-card'+(isEmpty?' empty':'')+(sel?' selected':'');
+    card.innerHTML=`<div class="ie-card-icon">${cfg.icon}</div>
+      <div class="ie-card-name">${cfg.name}</div>
+      <div class="ie-card-count">x${n}</div>`;
+    if(!isEmpty && pendingStageIdx>=0) card.onclick=()=>{
+      currentActive=(currentActive===key)?null:key;
+      renderActiveGrid(); updateActiveDesc();
+    };
+    grid.appendChild(card);
+  });
+  updateActiveDesc();
+}
+
+function updatePassiveDesc(){
+  const el=document.getElementById('iePassiveDesc');
+  if(!el) return;
+  if(currentPassive && ITEM_CFG[currentPassive]){
+    const c=ITEM_CFG[currentPassive];
+    el.innerHTML=c.icon+' <b>'+c.name+'</b> — '+c.desc;
+    el.style.color=c.color||'var(--cyan)';
+  } else {
+    el.textContent=t('equip_default_desc'); el.style.color='var(--gray)';
+  }
+}
+
+function updateActiveDesc(){
+  const el=document.getElementById('ieActiveDesc');
+  if(!el) return;
+  if(currentActive && ITEM_CFG[currentActive]){
+    const c=ITEM_CFG[currentActive];
+    el.innerHTML=c.icon+' <b>'+c.name+'</b> — '+c.desc;
+    el.style.color=c.color||'var(--gold)';
+  } else {
+    el.textContent=t('equip_active_none'); el.style.color='var(--gray)';
+  }
+}
+
+function startWithItems(passive, active){
+  closeItemEquip();
+  S.equippedItem = passive || null;
+  S.activeSlot   = active  || null;
+  P.stageIdx=pendingStageIdx;
+  P.genre=pendingGenre;
+  startPuzzle();
+}
+
+// 하위 호환성 (retryStage 등 기존 호출)
+function startWithItem(key){ startWithItems(key, null); }
+
+function retryStage(){ showItemEquip(P.stageIdx,P.genre); }
+
+function viewItemBag(){
+  openShop();
+}
+
+function updatePathNums(){
+  document.querySelectorAll('.tile-seq-num').forEach(n=>n.remove());
+  if(!P.pathActive)return;
+  const remaining=P.seq.slice(P.playerSeq.length);
+  const shown=new Set();
+  remaining.forEach((ti,offset)=>{
+    if(shown.has(ti))return;
+    shown.add(ti);
+    const t=tile(ti);if(!t)return;
+    const num=document.createElement('div');
+    num.className='tile-seq-num';
+    num.textContent=P.playerSeq.length+offset+1;
+    t.appendChild(num);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ACTIVE ITEM SYSTEM
+// ═══════════════════════════════════════════════
+function calcMult(){
+  let m=1;
+  if(P.goldActive && Date.now()<P.goldEnd) m*=2;
+  if(P.feverActive && P.feverHits>0) m*=3;
+  return m;
+}
+
+// ── 인게임 즉발형 바 렌더링 ──
+function renderItemBar(){
+  const bar=document.getElementById('itemBar');
+  if(!bar) return;
+  bar.innerHTML='';
+  ACTIVE_BAR_KEYS.forEach(key=>{
+    const cfg=ITEM_CFG[key];
+    const cnt=(S.items[key]||0);
+    const div=document.createElement('div');
+    div.className='item-slot'+(cnt<=0?' empty':'');
+    div.id='slot-'+key;
+    div.innerHTML=`<div class="item-slot-icon">${cfg.icon}</div>`+
+      `<div class="item-slot-name">${cfg.name}</div>`+
+      `<div class="item-slot-count">${cnt>0?'×'+cnt:t('item_none')}</div>`;
+    if(cnt>0) div.onclick=()=>activateBarItem(key);
+    bar.appendChild(div);
+  });
+}
+
+function activateBarItem(key){
+  const cnt=S.items[key]||0;
+  if(cnt<=0) return;
+  if(!isUnlimitedActive()) consumeItem(key);
+  save();
+  dispatchActiveItem(key);
+  updateSlotState(key);
+}
+
+function updateSlotState(key){
+  const el=document.getElementById('slot-'+key);
+  if(!el) return;
+  const cnt=S.items[key]||0;
+  const cntEl=el.querySelector('.item-slot-count');
+
+  // 상태 클래스 초기화
+  el.classList.remove('ready-state','gold-state','fever-state','empty');
+
+  if(key==='gold' && P.goldActive && Date.now()<P.goldEnd){
+    const rem=Math.max(0,Math.ceil((P.goldEnd-Date.now())/1000));
+    el.classList.add('gold-state');
+    if(cntEl) cntEl.textContent=rem+t('unit_sec');
+    return;
+  }
+  if(key==='fever' && P.feverActive && P.feverHits>0){
+    el.classList.add('fever-state');
+    if(cntEl) cntEl.textContent=P.feverHits+t('unit_hits');
+    return;
+  }
+  if((key==='shield' && P.shieldReady)||(key==='revive' && P.reviveReady)){
+    el.classList.add('ready-state');
+    if(cntEl) cntEl.textContent=t('item_ready');
+    return;
+  }
+  // 기본 상태
+  if(cnt<=0){
+    el.classList.add('empty');
+    if(cntEl) cntEl.textContent=t('item_none');
+    el.onclick=null;
+  } else {
+    if(cntEl) cntEl.textContent='×'+cnt;
+    el.onclick=()=>activateBarItem(key);
+  }
+}
+
+function useActiveItem(){
+  // legacy stub — 바 방식으로 대체됨
+}
+
+function dispatchActiveItem(key){
+  const fns={shield:useShield,revive:useRevive,erase:useErase,gold:useGold,
+    fever:useFever,replay:useReplay,nexthint:useNextHint,freeze:useFreeze,slow:useSlow};
+  if(fns[key]) fns[key]();
+}
+
+function useShield()  { P.shieldReady=true; showMsg(t('msg_shield')); updateSlotState('shield'); }
+function useRevive()  { P.reviveReady=true; showMsg(t('msg_revive')); updateSlotState('revive'); }
+function useErase()   { P.eraseReady=true;  showMsg(t('msg_erase')); }
+
+function useGold(){
+  P.goldActive=true; P.goldEnd=Date.now()+15000;
+  showMsg(t('msg_gold'));
+  document.getElementById('beatFill').classList.add('gold');
+  clearInterval(P.goldTimer);
+  P.goldTimer=setInterval(()=>{
+    if(!P.goldActive || Date.now()>=P.goldEnd){
+      P.goldActive=false;
+      clearInterval(P.goldTimer);
+      const bf=document.getElementById('beatFill');
+      if(bf) bf.classList.remove('gold');
+    }
+    updateSlotState('gold');
+  },400);
+}
+
+function useFever(){
+  P.feverActive=true; P.feverHits=5;
+  showMsg(t('msg_fever'));
+  updateSlotState('fever');
+}
+
+function useReplay(){
+  if(P.genre==='dance' && P.phase==='perform'){
+    clearTimeout(P.watchHandle); clearTimeout(P.roundTimeout);
+    P.playerSeq=[]; beatFill(0,P.seq.length);
+    watchPhase(); showMsg(t('msg_replay'));
+  } else if(P.genre==='vocal' && P.phase==='sing'){
+    clearTimeout(P.watchHandle); clearTimeout(P.roundTimeout);
+    P.playerSeq=[]; beatFill(0,P.seq.length);
+    listenPhase(); showMsg(t('msg_replay'));
+  } else {
+    showMsg(t('msg_replay_na'));
+  }
+}
+
+function useNextHint(){
+  const nextIdx=P.playerSeq.length;
+  if(nextIdx>=P.seq.length){ showMsg(t('msg_nexthint_done')); return; }
+  const ti=P.seq[nextIdx];
+  lit(ti); showMsg(t('msg_nexthint'));
+  setTimeout(()=>{ if(P.phase==='perform'||P.phase==='sing') unlit(ti); },2000);
+}
+
+function useFreeze(){
+  if(P.genre!=='rapper'){ showMsg(t('msg_freeze_na')); return; }
+  if(P.phase==='rapper-go'){
+    cancelAnimationFrame(P.beatRAF);
+    startBeatCountdown();
+    showMsg(t('msg_freeze'));
+  } else {
+    showMsg(t('msg_freeze_nobeat'));
+  }
+}
+
+function useSlow(){
+  P.slowActive=true;
+  showMsg(t('msg_slow'));
+  clearTimeout(P.slowTimer);
+  P.slowTimer=setTimeout(()=>{ P.slowActive=false; },5000);
+}
+
+function updateActiveSlotBtn(){} // no-op (바 방식으로 대체)
+
+// ── 이름 변경권 ──────────────────────────────
+function useRename(){
+  if((S.items.rename||0)<=0){ showMsg(t('rename_none')); return; }
+  document.getElementById('renameInput').value='';
+  document.getElementById('renameModal').style.display='flex';
+  setTimeout(()=>document.getElementById('renameInput').focus(),100);
+}
+function closeRenameModal(){
+  document.getElementById('renameModal').style.display='none';
+}
+function confirmRename(){
+  const raw=(document.getElementById('renameInput').value||'').trim();
+  if(!raw){ document.getElementById('renameInput').focus(); return; }
+  consumeItem('rename');
+  S.idolName=raw;
+  save();
+  closeRenameModal();
+  if(document.getElementById('heroName')) document.getElementById('heroName').textContent=raw;
+  showMsg(t('rename_done'));
+}
+
+// ── PROFILE CREATE ────────────────────────────
+let profChar=null;
+function profSelectChar(g){
+  profChar=g;
+  document.getElementById('prof-card-girl').classList.toggle('selected',g==='girl');
+  document.getElementById('prof-card-boy').classList.toggle('selected', g==='boy');
+  updateProfBtn();
+}
+function updateProfBtn(){
+  const btn=document.getElementById('profConfirmBtn');
+  btn.style.opacity=profChar?'1':'.3';
+  btn.style.pointerEvents=profChar?'auto':'none';
+}
+function confirmProfile(){
+  if(!profChar)return;
+  const raw=(document.getElementById('idolNameInput').value||'').trim();
+  S.character=profChar;
+  S.idolName=raw||autoIdolName();
+  save();
+  goTo('genre');
+}
+function autoIdolName(){
+  const n=parseInt(localStorage.getItem('kidol_seq')||'0')+1;
+  localStorage.setItem('kidol_seq',n);
+  return t('auto_name_prefix')+String(n).padStart(3,'0');
+}
+function resetProgress(){
+  if(!confirm('이 장르의 진행 상황을 초기화할까요?'))return;
+  const g=S.genre||'dance';
+  S.stageStars[g]=[0,0,0,0,0];
+  S.collection[g]=[null,null,null,null,null];
+  save();renderStages();
+}
+
+// ═══════════════════════════════════════════════
+// SOUND ENGINE  (Web Audio API)
+// ═══════════════════════════════════════════════
+const SND = {
+  _ctx: null,
+  muted: false,
+
+  get ctx() {
+    if (!this._ctx) {
+      try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+    }
+    if (this._ctx && this._ctx.state === 'suspended') this._ctx.resume();
+    return this._ctx;
+  },
+
+  toggle() {
+    this.muted = !this.muted;
+    document.getElementById('muteBtn').textContent = this.muted ? '🔇' : '🔊';
+    if (this.muted && BGM.el) BGM.el.pause();
+    else if (!this.muted && BGM.playing && BGM.el) {
+      BGM.el.play().catch(()=>{});
+      let v=0; const fi=setInterval(()=>{
+        v=Math.min(BGM.VOL,v+0.02); BGM.el.volume=v;
+        if(v>=BGM.VOL)clearInterval(fi);
+      },20);
+    }
+  },
+
+  // 기본 tone: 주파수·길이·파형·볼륨·딜레이
+  _tone(freq, dur, type='sine', vol=0.28, delay=0) {
+    const ac = this.ctx; if (!ac || this.muted) return;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = type; o.frequency.value = freq;
+    const t = ac.currentTime + delay;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+
+  // 노이즈 버스트: 드럼 계열
+  _noise(dur, vol=0.25, freq=300, ftype='lowpass', delay=0) {
+    const ac = this.ctx; if (!ac || this.muted) return;
+    const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    f.type = ftype; f.frequency.value = freq;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime + delay;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.start(t); src.stop(t + dur + 0.05);
+  },
+
+  // ── 버튼 클릭 ──
+  click() { this._tone(700, 0.05, 'sine', 0.12); },
+
+  // ── 보컬 모드: 도레미파 실제 음정 (C4 D4 E4 F4) ──
+  note(idx) {
+    const freqs = [261.63, 293.66, 329.63, 349.23];
+    const f = freqs[idx] || 261.63;
+    this._tone(f, 0.45, 'sine', 0.28);
+    this._tone(f*2, 0.2,  'sine', 0.08);  // 옥타브 배음
+  },
+
+  // ── 댄스: WATCH 단계 타일 하이라이트 ──
+  tileWatch() {
+    this._tone(880, 0.06, 'sine', 0.18);
+    this._tone(1320, 0.05, 'sine', 0.08, 0.05);
+  },
+
+  // ── 정답 ──
+  correct() {
+    this._tone(523, 0.08, 'sine', 0.22);
+    this._tone(659, 0.08, 'sine', 0.18, 0.07);
+    this._tone(784, 0.18, 'sine', 0.18, 0.14);
+  },
+
+  // ── 오답 ──
+  wrong() {
+    this._tone(220, 0.12, 'sawtooth', 0.22);
+    this._tone(160, 0.18, 'sawtooth', 0.16, 0.1);
+  },
+
+  // ── 콤보 ──
+  combo(n) {
+    const base = 440 + Math.min(n,8)*25;
+    [0, 0.08, 0.16, 0.24].forEach((d,i)=> this._tone(base*(1+i*0.25), 0.15, 'sine', 0.2, d));
+  },
+
+  // ── 카운트다운 ──
+  tick(isGo=false) {
+    if (isGo) { this._tone(880,0.12,'sine',0.3); this._tone(1100,0.18,'sine',0.25,0.1); }
+    else       { this._tone(660,0.08,'sine',0.22); }
+  },
+
+  // ── 래퍼: 킥드럼 ──
+  kick() {
+    const ac = this.ctx; if (!ac || this.muted) return;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(160, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(45, ac.currentTime + 0.18);
+    g.gain.setValueAtTime(0.55, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.32);
+    o.start(); o.stop(ac.currentTime + 0.35);
+    this._noise(0.06, 0.12, 250, 'highpass');
+  },
+
+  // ── 래퍼: 하이햇 ──
+  hihat() { this._noise(0.04, 0.07, 9000, 'highpass'); },
+
+  // ── 래퍼: 비트 등장 ──
+  beatAppear() { this.kick(); this.hihat(); },
+
+  // ── 래퍼: 비트 맞힘 ──
+  rapperHit() {
+    this._tone(440, 0.07, 'square', 0.14);
+    this._tone(660, 0.1,  'square', 0.1, 0.05);
+  },
+
+  // ── 결과: 별 팡파르 (K-Pop 멜로디) ──
+  starFanfare(stars) {
+    const seqs = {
+      1: [[523,0],[659,0.13]],
+      2: [[523,0],[659,0.12],[784,0.24]],
+      3: [[523,0],[659,0.1],[784,0.2],[1047,0.32],[1175,0.46]]
+    };
+    (seqs[stars]||seqs[1]).forEach(([f,d])=> this._tone(f,0.28,'sine',0.3,d));
+    if (stars===3) {
+      // 화음 추가
+      [0,0.1,0.2,0.32,0.46].forEach((d,i)=>{
+        const base=[523,659,784,1047,1175][i];
+        this._tone(base*1.25,0.22,'sine',0.12,d+0.04);
+      });
+    }
+  },
+
+  // ── 아이템 획득: 골드 팡파르 ──
+  goldFanfare() {
+    [523,659,784,988,1047,1319].forEach((f,i)=>{
+      this._tone(f,  0.28,'sine',0.28,i*0.09);
+      this._tone(f*1.5,0.18,'sine',0.12,i*0.09+0.04);
+    });
+  },
+};
+
+// ── BGM (장르별 배경음악) ──
+const BGM = {
+  el: null,
+  playing: false,
+  current: null,
+  _fadeId: null,
+  VOL: 0.35,
+
+  // ── 장르 × 등급 9트랙 + 타이틀 ──
+  tracks: {
+    title:      'images/bgm-title.mp3',
+    // 댄스: 1=연습실 가벼운 비트 / 2=무대 에너지 / 3=월드투어 epic
+    'dance-1':  'images/bgm-dance-1.mp3',
+    'dance-2':  'images/bgm-dance-2.mp3',
+    'dance-3':  'images/bgm-dance-3.mp3',
+    // 보컬: 1=멜로딕 연습 / 2=감성 팝 / 3=웅장 발라드
+    'vocal-1':  'images/bgm-vocal-1.mp3',
+    'vocal-2':  'images/bgm-vocal-2.mp3',
+    'vocal-3':  'images/bgm-vocal-3.mp3',
+    // 래퍼: 1=루즈 붐뱁 / 2=하이에너지 힙합 / 3=트랩 epic
+    'rapper-1': 'images/bgm-rapper-1.mp3',
+    'rapper-2': 'images/bgm-rapper-2.mp3',
+    'rapper-3': 'images/bgm-rapper-3.mp3',
+  },
+
+  // stageIdx → 등급 티어 (0-1: 초반, 2-3: 중반, 4: 최종)
+  tier(stageIdx) {
+    if (stageIdx <= 1) return 1;
+    if (stageIdx <= 3) return 2;
+    return 3;
+  },
+
+  // 장르 + 스테이지 인덱스로 자동 키 조합
+  playGenre(genre, stageIdx) {
+    this.play(genre + '-' + this.tier(stageIdx));
+  },
+
+  // 크로스페이드 재생
+  play(key) {
+    const src = this.tracks[key];
+    if (!src || this.current === key) return;
+    clearInterval(this._fadeId);
+    this.current = key;
+
+    // 이전 BGM 페이드 아웃
+    const prev = this.el;
+    if (prev && !prev.paused) {
+      let v = prev.volume;
+      const fo = setInterval(() => {
+        v = Math.max(0, v - 0.035);
+        prev.volume = v;
+        if (v <= 0) { clearInterval(fo); prev.pause(); }
+      }, 20);
+    }
+
+    // 새 BGM 페이드 인
+    const next = new Audio(src);
+    next.loop = true;
+    next.volume = 0;
+    this.el = next;
+    this.playing = true;
+    if (SND.muted) return;
+    next.play().catch(() => {});
+    let v = 0;
+    this._fadeId = setInterval(() => {
+      v = Math.min(this.VOL, v + 0.02);
+      next.volume = v;
+      if (v >= this.VOL) clearInterval(this._fadeId);
+    }, 20);
+  },
+
+  // 페이드 아웃 후 정지
+  stop() {
+    clearInterval(this._fadeId);
+    const el = this.el;
+    if (!el) { this.playing = false; this.current = null; return; }
+    let v = el.volume;
+    this._fadeId = setInterval(() => {
+      v = Math.max(0, v - 0.035);
+      el.volume = v;
+      if (v <= 0) { clearInterval(this._fadeId); el.pause(); el.currentTime = 0; }
+    }, 20);
+    this.playing = false;
+    this.current = null;
+  },
+};
+
+// ═══════════════════════════════════════════════
+// BG STARS
+// ═══════════════════════════════════════════════
+function makeBgStars(){
+  const c=document.getElementById('bgStars');
+  const cols=['#ffffff','#00ffff','#ff6b00','#ffd700'];
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star-dot';
+    const sz=(1+Math.random()*2.5)+'px';
+    s.style.width=sz;s.style.height=sz;
+    s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';
+    s.style.background=cols[Math.floor(Math.random()*cols.length)];
+    s.style.setProperty('--dur',(1+Math.random()*3)+'s');
+    s.style.animationDelay=Math.random()*4+'s';
+    c.appendChild(s);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+load();makeBgStars();
+applyLang();
+P.stageIdx=0;P.genre=S.genre||'dance';
+profChar=S.character||null;
+if(profChar){
+  document.getElementById('prof-card-girl').classList.toggle('selected',profChar==='girl');
+  document.getElementById('prof-card-boy').classList.toggle('selected', profChar==='boy');
+  updateProfBtn();
+}
+if(S.idolName) document.getElementById('idolNameInput').value=S.idolName;
+if(!S.lang){ goTo('lang'); } else { renderTitle(); }
+
+// 버튼 클릭음 + Web Audio 활성화 (첫 터치 시)
+document.addEventListener('click', e=>{
+  SND.ctx; // 컨텍스트 초기화
+  if(e.target.matches('.btn,.back-btn,.genre-card,.col-tab,.pz-quit,.char-card'))
+    SND.click();
+}, {capture:true});
+
+function resetData() {
+  if(confirm("모든 플레이 데이터를 삭제하고 처음부터 다시 시작합니다. 계속하시겠습니까?\n\nReset all data and restart?")) {
+    localStorage.removeItem('kidol_v6');
+    location.reload();
+  }
+}
+
+function openDonation() {
+  window.open('https://ko-fi.com/headjim', '_blank');
+}
+
+// ═══════════════════════════════════════════════
+// ASSET PRELOADING
+// ═══════════════════════════════════════════════
+const preloadImages = ['images/characters-girl.png', 'images/characters-boy.png', 'images/dance-icon.png', 'images/vocal-icon.png', 'images/rapper-icon.png'];
+preloadImages.forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
+</script>
+</body>
+</html>

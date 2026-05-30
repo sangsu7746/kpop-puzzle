@@ -1,0 +1,8 @@
+# 배포에 불필요한 파일
+*.py
+*.zip
+*.txt
+scratch_*.txt
+check_logs.py
+dump_func.py
+itch-assets/

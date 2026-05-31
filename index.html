@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>K-IDOL Brain Puzzle</title>
 <meta name="theme-color" content="#0A1931">
 <link rel="manifest" href="manifest.json">
@@ -18,14 +18,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;height:100dvh}
+
+/* ── 가로 모드 차단 오버레이 ── */
+.rotate-overlay{
+  display:none;position:fixed;inset:0;z-index:999999;
+  background:#0A1931;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;text-align:center}
+.rotate-icon{font-size:3.5rem;animation:rotate-hint 1.4s ease-in-out infinite}
+@keyframes rotate-hint{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-90deg)}}
+.rotate-msg{font-family:'Noto Sans KR',sans-serif;font-size:1rem;
+  color:rgba(255,255,255,.85);line-height:1.7;letter-spacing:.5px}
+@media (orientation:landscape){
+  .rotate-overlay{display:flex}
+  #app{display:none}
+}
 :root{
   --navy:#0A1931;--navy2:#061022;--navy3:#0d1f40;
   --orange:#FF6B00;--cyan:#00FFFF;--gold:#FFD700;--gray:#CCCCCC;
 }
 body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
-  height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center;
-  user-select:none;-webkit-tap-highlight-color:transparent}
-#app{width:100%;max-width:480px;height:100vh;position:relative;overflow:hidden}
+  height:100vh;height:100dvh;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#app{width:100%;max-width:480px;height:100vh;height:100dvh;position:relative;overflow:hidden}
 
 /* BG */
 .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -726,6 +742,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
 </style>
 </head>
 <body>
+<!-- 가로 모드 차단 오버레이 -->
+<div class="rotate-overlay">
+  <div class="rotate-icon">📱</div>
+  <div class="rotate-msg">
+    세로 모드로 돌려주세요<br>
+    <span style="font-size:.8rem;opacity:.6">Please rotate to portrait mode</span>
+  </div>
+</div>
 <div id="app">
 <button class="mute-btn" id="muteBtn" onclick="SND.toggle()" style="right:58px">🔊</button>
 <button class="mute-btn" id="settingsBtn" onclick="openSettings()" style="right:12px">⚙️</button>
@@ -886,7 +910,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
     <div class="growth-labels">
       <span data-i18n="growth_label">성장도</span>
       <span id="starsLabel" style="color:var(--gold)">⭐ 0 / 15</span>
-      <span id="coinsLabel" style="color:#fbbf24;font-size:.78rem">🪙 0</span>
+      <span id="coinsLabel" style="color:#fbbf24;font-size:.78rem">💰 0</span>
     </div>
     <div class="growth-track"><div class="growth-fill" id="growthFill" style="width:0%"></div></div>
   </div>
@@ -932,7 +956,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
   <div id="resultCoinBox" style="display:none;align-items:center;gap:8px;
     background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);
     border-radius:10px;padding:7px 16px;margin-bottom:6px">
-    <span style="font-size:1.1rem">🪙</span>
+    <span style="font-size:1.1rem">💰</span>
     <span id="resultCoinVal" style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#fbbf24"></span>
     <span style="font-size:.68rem;color:rgba(255,255,255,.35)" id="resultCoinTotal"></span>
   </div>
@@ -1003,7 +1027,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
   <div class="shop-header">
     <div class="shop-title">🛒 ITEM SHOP</div>
     <div class="shop-coins">
-      <span class="shop-coins-icon">🪙</span>
+      <span class="shop-coins-icon">💰</span>
       <span class="shop-coins-val" id="shopCoinsVal">0</span>
     </div>
   </div>
@@ -1026,9 +1050,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
     <div class="bm-price-row">
       <span class="bm-price-label" data-i18n="buy_price_label">가격</span>
       <span class="bm-price-val" id="bmPrice"></span>
-      <span class="bm-price-label">🪙</span>
+      <span class="bm-price-label">💰</span>
     </div>
-    <div class="bm-balance"><span data-i18n="buy_balance">보유 코인:</span> <span id="bmBalance">0</span> 🪙</div>
+    <div class="bm-balance"><span data-i18n="buy_balance">보유 코인:</span> <span id="bmBalance">0</span> 💰</div>
     <div class="bm-err" id="bmErr"></div>
     <div class="bm-btns">
       <button class="btn btn-ghost" onclick="closeBuyModal()" data-i18n="buy_cancel">취소</button>
@@ -1078,11 +1102,11 @@ const I18N = {
     phase_watch:'👁️ 잘 봐둬!',phase_perform:'🔥 같은 순서로 탭하세요!',
     phase_listen:'🎵 멜로디를 들으세요!',phase_sing:'🎤 같은 음정으로 따라하세요!',
     phase_watch_label:'WATCH',phase_perform_label:'PERFORM',phase_listen_label:'LISTEN',phase_sing_label:'SING',
-    rapper_beat:'{n} / {t} 비트',
+    rapper_beat:'{n} / {t} 비트',rapper_retry:'화면을 탭하여 재도전!',
     result_perfect:'퍼펙트 퍼포먼스!',result_great:'멋진 무대!',result_good:'좋은 시작!',result_fail:'무대 실패...',
     result_score_label:'SCORE',result_drop_title:'⚡ 아이템 획득!',result_drop_hint:'인벤토리에 추가됨',
     result_rank_title:'오늘의 미니 랭킹 (동일 등급)',result_rank_all:'🏆 전체 토너먼트 랭킹 모두 보기',
-    btn_stages:'스테이지',btn_retry:'다시 도전',coin_total:'총 {n} 🪙',rank_pos:'{n}위',rank_me:'나',
+    btn_stages:'스테이지',btn_retry:'다시 도전',coin_total:'총 {n} 💰',rank_pos:'{n}위',rank_me:'나',
     col_title:'내 컬렉션',col_sub:'{n} / 15장 수집',
     col_tab_dance:'💃 댄스',col_tab_vocal:'🎤 보컬',col_tab_rapper:'🎧 래퍼',
     album_dance:'댄스 앨범',album_vocal:'보컬 앨범',album_rapper:'래퍼 앨범',
@@ -1091,7 +1115,7 @@ const I18N = {
     rank_tab_dance:'💃 댄스',rank_tab_vocal:'🎤 보컬',rank_tab_rapper:'🎧 래퍼',
     shop_tab_active:'즉발형',shop_tab_passive:'장착형',shop_tab_special:'특수',
     shop_no_items:'아이템 없음',buy_price_label:'가격',buy_balance:'보유 코인:',
-    buy_err_coins:'🪙 코인이 부족합니다',buy_cancel:'취소',buy_confirm:'구매하기',
+    buy_err_coins:'💰 코인이 부족합니다',buy_cancel:'취소',buy_confirm:'구매하기',
     equip_title:'🎒 장착형 선택',equip_sub:'게임 전 패시브 장착 · 즉발형은 인게임 자동 표시',
     equip_default_desc:'장착 없이 시작 가능',equip_active_none:'게임 중 아이템 없음',equip_skip:'없이 시작',equip_start:'✦ 시작!',
     item_ready:'대기중',unit_sec:'초',unit_hits:'타',unit_min:'분',
@@ -1151,11 +1175,11 @@ const I18N = {
     phase_watch:'👁️ Watch carefully!',phase_perform:'🔥 Tap in the same order!',
     phase_listen:'🎵 Listen to the melody!',phase_sing:'🎤 Sing it back!',
     phase_watch_label:'WATCH',phase_perform_label:'PERFORM',phase_listen_label:'LISTEN',phase_sing_label:'SING',
-    rapper_beat:'{n} / {t} beat',
+    rapper_beat:'{n} / {t} beat',rapper_retry:'Tap to retry!',
     result_perfect:'Perfect Performance!',result_great:'Great Show!',result_good:'Good Start!',result_fail:'Stage Failed...',
     result_score_label:'SCORE',result_drop_title:'⚡ Item Obtained!',result_drop_hint:'Added to inventory',
     result_rank_title:"Today's Mini Ranking",result_rank_all:'🏆 View Full Rankings',
-    btn_stages:'Stages',btn_retry:'Try Again',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Me',
+    btn_stages:'Stages',btn_retry:'Try Again',coin_total:'Total: {n} 💰',rank_pos:'#{n}',rank_me:'Me',
     col_title:'My Collection',col_sub:'{n} / 15 Collected',
     col_tab_dance:'💃 Dance',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rapper',
     album_dance:'Dance Album',album_vocal:'Vocal Album',album_rapper:'Rapper Album',
@@ -1164,7 +1188,7 @@ const I18N = {
     rank_tab_dance:'💃 Dance',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rapper',
     shop_tab_active:'Active',shop_tab_passive:'Passive',shop_tab_special:'Special',
     shop_no_items:'No items',buy_price_label:'Price',buy_balance:'Balance:',
-    buy_err_coins:'🪙 Not enough coins',buy_cancel:'Cancel',buy_confirm:'Buy Now',
+    buy_err_coins:'💰 Not enough coins',buy_cancel:'Cancel',buy_confirm:'Buy Now',
     equip_title:'🎒 Select Passive',equip_sub:'Equip before game · Active items auto-shown in-game',
     equip_default_desc:'Play without equipping',equip_active_none:'No in-game item selected',equip_skip:'Skip',equip_start:'✦ Start!',
     item_ready:'Ready',unit_sec:'s',unit_hits:'hits',unit_min:'min',
@@ -1224,11 +1248,11 @@ const I18N = {
     phase_watch:'👁️ ¡Observa!',phase_perform:'🔥 ¡Toca en el mismo orden!',
     phase_listen:'🎵 ¡Escucha la melodía!',phase_sing:'🎤 ¡Cántala de vuelta!',
     phase_watch_label:'VER',phase_perform_label:'ACTUAR',phase_listen_label:'ESCUCHAR',phase_sing_label:'CANTAR',
-    rapper_beat:'{n} / {t} beat',
+    rapper_beat:'{n} / {t} beat',rapper_retry:'¡Toca para reintentar!',
     result_perfect:'¡Actuación Perfecta!',result_great:'¡Gran Actuación!',result_good:'¡Buen Comienzo!',result_fail:'¡Actuación Fallida...',
     result_score_label:'PUNTOS',result_drop_title:'⚡ ¡Objeto Obtenido!',result_drop_hint:'Añadido al inventario',
     result_rank_title:'Mini Ranking de Hoy',result_rank_all:'🏆 Ver Ranking Completo',
-    btn_stages:'Niveles',btn_retry:'Reintentar',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Yo',
+    btn_stages:'Niveles',btn_retry:'Reintentar',coin_total:'Total: {n} 💰',rank_pos:'#{n}',rank_me:'Yo',
     col_title:'Mi Colección',col_sub:'{n} / 15 Coleccionados',
     col_tab_dance:'💃 Baile',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rap',
     album_dance:'Álbum de Baile',album_vocal:'Álbum Vocal',album_rapper:'Álbum de Rap',
@@ -1237,7 +1261,7 @@ const I18N = {
     rank_tab_dance:'💃 Baile',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rap',
     shop_tab_active:'Activos',shop_tab_passive:'Pasivos',shop_tab_special:'Especial',
     shop_no_items:'Sin objetos',buy_price_label:'Precio',buy_balance:'Monedas:',
-    buy_err_coins:'🪙 Monedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
+    buy_err_coins:'💰 Monedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
     equip_title:'🎒 Seleccionar Pasivo',equip_sub:'Equipar antes del juego · Activos se muestran solos',
     equip_default_desc:'Jugar sin equipar',equip_active_none:'Sin ítem en el juego',equip_skip:'Omitir',equip_start:'✦ ¡Empezar!',
     item_ready:'Listo',unit_sec:'s',unit_hits:'golpes',unit_min:'min',
@@ -1297,11 +1321,11 @@ const I18N = {
     phase_watch:'👁️ Perhatikan!',phase_perform:'🔥 Ketuk dengan urutan yang sama!',
     phase_listen:'🎵 Dengarkan melodinya!',phase_sing:'🎤 Nyanyikan kembali!',
     phase_watch_label:'LIHAT',phase_perform_label:'LAKUKAN',phase_listen_label:'DENGAR',phase_sing_label:'NYANYI',
-    rapper_beat:'{n} / {t} beat',
+    rapper_beat:'{n} / {t} beat',rapper_retry:'Ketuk untuk mencoba lagi!',
     result_perfect:'Penampilan Sempurna!',result_great:'Pertunjukan Hebat!',result_good:'Awal yang Baik!',result_fail:'Gagal...',
     result_score_label:'SKOR',result_drop_title:'⚡ Item Didapat!',result_drop_hint:'Ditambahkan ke inventaris',
     result_rank_title:'Mini Peringkat Hari Ini',result_rank_all:'🏆 Lihat Semua Peringkat',
-    btn_stages:'Level',btn_retry:'Coba Lagi',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Saya',
+    btn_stages:'Level',btn_retry:'Coba Lagi',coin_total:'Total: {n} 💰',rank_pos:'#{n}',rank_me:'Saya',
     col_title:'Koleksiku',col_sub:'{n} / 15 Terkumpul',
     col_tab_dance:'💃 Dance',col_tab_vocal:'🎤 Vokal',col_tab_rapper:'🎧 Rapper',
     album_dance:'Album Dance',album_vocal:'Album Vokal',album_rapper:'Album Rapper',
@@ -1310,7 +1334,7 @@ const I18N = {
     rank_tab_dance:'💃 Dance',rank_tab_vocal:'🎤 Vokal',rank_tab_rapper:'🎧 Rapper',
     shop_tab_active:'Aktif',shop_tab_passive:'Pasif',shop_tab_special:'Spesial',
     shop_no_items:'Tidak ada item',buy_price_label:'Harga',buy_balance:'Koin:',
-    buy_err_coins:'🪙 Koin tidak cukup',buy_cancel:'Batal',buy_confirm:'Beli',
+    buy_err_coins:'💰 Koin tidak cukup',buy_cancel:'Batal',buy_confirm:'Beli',
     equip_title:'🎒 Pilih Pasif',equip_sub:'Pasang sebelum main · Item aktif otomatis muncul',
     equip_default_desc:'Main tanpa memasang',equip_active_none:'Tidak ada item dalam game',equip_skip:'Lewati',equip_start:'✦ Mulai!',
     item_ready:'Siap',unit_sec:'d',unit_hits:'hit',unit_min:'mnt',
@@ -1370,11 +1394,11 @@ const I18N = {
     phase_watch:'👁️ Observe!',phase_perform:'🔥 Toque na mesma ordem!',
     phase_listen:'🎵 Ouça a melodia!',phase_sing:'🎤 Cante de volta!',
     phase_watch_label:'VER',phase_perform_label:'ATUAR',phase_listen_label:'OUVIR',phase_sing_label:'CANTAR',
-    rapper_beat:'{n} / {t} beat',
+    rapper_beat:'{n} / {t} beat',rapper_retry:'Toque para tentar novamente!',
     result_perfect:'Performance Perfeita!',result_great:'Ótimo Show!',result_good:'Bom Começo!',
     result_score_label:'PONTOS',result_drop_title:'⚡ Item Obtido!',result_drop_hint:'Adicionado ao inventário',
     result_rank_title:'Mini Ranking de Hoje',result_rank_all:'🏆 Ver Ranking Completo',
-    btn_stages:'Fases',btn_retry:'Tentar Novamente',coin_total:'Total: {n} 🪙',rank_pos:'#{n}',rank_me:'Eu',
+    btn_stages:'Fases',btn_retry:'Tentar Novamente',coin_total:'Total: {n} 💰',rank_pos:'#{n}',rank_me:'Eu',
     col_title:'Minha Coleção',col_sub:'{n} / 15 Coletados',
     col_tab_dance:'💃 Dança',col_tab_vocal:'🎤 Vocal',col_tab_rapper:'🎧 Rap',
     album_dance:'Álbum de Dança',album_vocal:'Álbum Vocal',album_rapper:'Álbum de Rap',
@@ -1383,7 +1407,7 @@ const I18N = {
     rank_tab_dance:'💃 Dança',rank_tab_vocal:'🎤 Vocal',rank_tab_rapper:'🎧 Rap',
     shop_tab_active:'Ativos',shop_tab_passive:'Passivos',shop_tab_special:'Especial',
     shop_no_items:'Sem itens',buy_price_label:'Preço',buy_balance:'Moedas:',
-    buy_err_coins:'🪙 Moedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
+    buy_err_coins:'💰 Moedas insuficientes',buy_cancel:'Cancelar',buy_confirm:'Comprar',
     equip_title:'🎒 Selecionar Passivo',equip_sub:'Equipar antes do jogo · Ativos aparecem automaticamente',
     equip_default_desc:'Jogar sem equipar',equip_active_none:'Sem item no jogo',equip_skip:'Pular',equip_start:'✦ Começar!',
     item_ready:'Pronto',unit_sec:'s',unit_hits:'acertos',unit_min:'min',
@@ -1784,6 +1808,25 @@ function nextRound(){
   if(P.round>=TOTAL_ROUNDS){endPuzzle();return;}
   setDot(P.round,'current');
 
+  if(P.round>0){
+    // 라운드 전환: ROUND N → GO!
+    clearTiles();
+    beatFill(0,1);
+    setPhase('ROUND '+(P.round+1),'phase-ready','');
+    SND.tick();
+    P.roundTimeout=setTimeout(()=>{
+      if(P.phase==='done')return;
+      setPhase('GO!','phase-go','');
+      SND.tick(true);
+      P.roundTimeout=setTimeout(()=>beginRound(),300);
+    },600);
+  } else {
+    beginRound();
+  }
+}
+
+function beginRound(){
+  if(P.phase==='done')return;
   if(P.genre==='rapper'){
     const bpr = P.cfg.beats + P.round*2;
     P.beatsPerRound=bpr;
@@ -2007,12 +2050,27 @@ function rapperMiss(){
     rapperNextBeat();
     return;
   }
-  if(P.shieldReady){P.shieldReady=false;showMsg('💠 SHIELD!');updateSlotState('shield');}
-  else{P.combo=0;showMsg('MISS!');}
+  if(P.shieldReady){
+    P.shieldReady=false;showMsg('💠 SHIELD!');updateSlotState('shield');
+    SND.wrong();
+    unlit(P.currentTile);tileClass(P.currentTile,'wrong');
+    markBeat(P.beatsDone-1,'miss');
+    rapperNextBeat();
+    return;
+  }
+  // 일반 미스: 같은 비트를 다시 표시 (자동 진행 없음)
+  P.combo=0;showMsg('MISS!');
   SND.wrong();
   unlit(P.currentTile);tileClass(P.currentTile,'wrong');
   markBeat(P.beatsDone-1,'miss');
-  rapperNextBeat();
+  P.beatTimeout=setTimeout(()=>{
+    if(P.phase!=='rapper-idle')return;
+    P.lastBeatStart=Date.now();
+    P.phase='rapper-go';
+    lit(P.currentTile);
+    setPhase('GO!','phase-go',t('rapper_beat',{n:P.beatsDone,t:P.beatsPerRound}));
+    startBeatCountdown();
+  },P.cfg.gap);
 }
 
 function markBeat(i,state){
@@ -2292,7 +2350,7 @@ function renderStages(){
   const tot=genStars(g);
   document.getElementById('starsLabel').textContent=`⭐ ${tot} / 15`;
   const cl=document.getElementById('coinsLabel');
-  if(cl) cl.textContent=`🪙 ${(S.coins||0).toLocaleString()}`;
+  if(cl) cl.textContent=`💰 ${(S.coins||0).toLocaleString()}`;
   document.getElementById('growthFill').style.width=Math.min(100,tot/15*100)+'%';
 
   const list=document.getElementById('stageList');
@@ -2658,7 +2716,7 @@ function renderShopGrid(){
       <div class="sc-name">${cfg.name}</div>
       <div class="sc-desc">${cfg.desc}</div>
       <div class="sc-price" style="${canAfford?'':'opacity:.45'}">
-        <span class="sc-price-icon">🪙</span>
+        <span class="sc-price-icon">💰</span>
         <span class="sc-price-val">${price}</span>
       </div>`;
     card.onclick=()=>openBuyModal(key);
@@ -2820,7 +2878,11 @@ function startWithItems(passive, active){
 // 하위 호환성 (retryStage 등 기존 호출)
 function startWithItem(key){ startWithItems(key, null); }
 
-function retryStage(){ showItemEquip(P.stageIdx,P.genre); }
+function retryStage(){
+  pendingStageIdx=P.stageIdx;
+  pendingGenre=P.genre;
+  startWithItems(S.equippedItem||null, S.activeSlot||null);
+}
 
 function viewItemBag(){
   openShop();
@@ -3304,6 +3366,37 @@ function makeBgStars(){
 }
 
 // ═══════════════════════════════════════════════
+// ORIENTATION LOCK
+// ═══════════════════════════════════════════════
+(function lockPortrait(){
+  // Screen Orientation API (Android Chrome, PWA에서 동작)
+  if(screen.orientation && screen.orientation.lock){
+    screen.orientation.lock('portrait-primary').catch(()=>{});
+  }
+
+  const overlay = document.querySelector('.rotate-overlay');
+  const app     = document.getElementById('app');
+
+  function checkOrientation(){
+    const isLandscape = window.innerWidth > window.innerHeight;
+    if(overlay) overlay.style.display = isLandscape ? 'flex' : 'none';
+    if(app)     app.style.display     = isLandscape ? 'none' : '';
+  }
+
+  // 초기 체크
+  checkOrientation();
+
+  // orientation / resize 이벤트 모두 감지
+  window.addEventListener('orientationchange', ()=> setTimeout(checkOrientation, 100));
+  window.addEventListener('resize', checkOrientation);
+
+  // Screen Orientation API change 이벤트
+  if(screen.orientation){
+    screen.orientation.addEventListener('change', checkOrientation);
+  }
+})();
+
+// ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 load();makeBgStars();
@@ -3347,3 +3440,4 @@ preloadImages.forEach(src => {
 </script>
 </body>
 </html>
+

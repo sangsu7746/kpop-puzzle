@@ -328,7 +328,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
 @keyframes dot-beat{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
 
 /* ── RESULT ── */
-#screen-result{background:linear-gradient(170deg,#0d1e3a,var(--navy2));text-align:center;gap:0}
+#screen-result{background:linear-gradient(170deg,#0d1e3a,var(--navy2));text-align:center;gap:0;
+  justify-content:flex-start;overflow-y:auto;padding-bottom:90px}
+.result-fixed-btns{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  display:flex;gap:12px;padding:12px 20px 20px;
+  background:linear-gradient(transparent,rgba(6,16,34,.98) 30%);
+  z-index:50}
 .result-idol{font-size:4rem;margin-bottom:8px;animation:idol-float 3s ease-in-out infinite;
   filter:drop-shadow(0 0 18px rgba(0,255,255,.4))}
 .result-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;
@@ -980,9 +987,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
     <div id="miniRankList"></div>
     <button class="btn btn-ghost" style="margin-top:8px;font-size:0.8rem;padding:6px" onclick="viewRanking()" data-i18n="result_rank_all">🏆 전체 토너먼트 랭킹 모두 보기</button>
   </div>
-  <div class="result-btns" style="margin-top:15px">
-    <button class="btn btn-secondary" onclick="goTo('stages')" data-i18n="btn_stages">스테이지</button>
-    <button class="btn btn-primary" onclick="retryStage()" data-i18n="btn_retry">다시 도전</button>
+  <div class="result-fixed-btns">
+    <button class="btn btn-secondary" onclick="goTo('stages')" data-i18n="btn_stages" style="flex:1">스테이지</button>
+    <button class="btn btn-primary" onclick="retryStage()" data-i18n="btn_retry" style="flex:1">다시 도전</button>
   </div>
 </div>
 

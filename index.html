@@ -1769,7 +1769,7 @@ function startPuzzle(){
     slowActive:  false, slowTimer:null,
     // rapper
     beatsPerRound:cfg.beats||6, beatsDone:0,
-    hitsTotal:0, beatsTotal:0,
+    hitsTotal:0, beatsTotal:0, rapperMisses:0,
     currentTile:-1, lastTile:-1, beatRAF:null,
     // emojis
     emojis:[...DANCE_EMOJIS].sort(()=>Math.random()-.5).slice(0,16)
@@ -2128,19 +2128,15 @@ function rapperMiss(){
     rapperNextBeat();
     return;
   }
-  // 일반 미스: 같은 비트를 다시 표시 (자동 진행 없음)
-  P.combo=0;showMsg('MISS!');
+  // 일반 미스: -30점 패널티 후 다음 비트로 진행
+  P.combo=0;P.rapperMisses++;
+  P.score=Math.max(0,P.score-30);
+  updScore();spawnPt(P.currentTile,'-30','#ef4444');
+  showMsg('MISS!');
   SND.wrong();VIB.miss();
   unlit(P.currentTile);tileClass(P.currentTile,'wrong');
   markBeat(P.beatsDone-1,'miss');
-  P.beatTimeout=setTimeout(()=>{
-    if(P.phase!=='rapper-idle')return;
-    P.lastBeatStart=Date.now();
-    P.phase='rapper-go';
-    lit(P.currentTile);
-    setPhase('GO!','phase-go',t('rapper_beat',{n:P.beatsDone,t:P.beatsPerRound}));
-    startBeatCountdown();
-  },P.cfg.gap);
+  rapperNextBeat();
 }
 
 function markBeat(i,state){
@@ -2162,7 +2158,7 @@ function endPuzzle(){
   let stars;
   if(P.genre==='rapper'){
     const rate=P.beatsTotal>0?P.hitsTotal/P.beatsTotal:0;
-    stars=rate>=.90?3:rate>=.75?2:rate>=.60?1:0;
+    stars=rate>=.93?3:rate>=.80?2:rate>=.65?1:0;
   } else {
     const r=P.maxScore>0?P.score/P.maxScore:0;
     stars=r>=.90?3:r>=.70?2:r>=.50?1:0;
@@ -2368,10 +2364,11 @@ function goldExplosion(cb){
   }
   setTimeout(()=>{el.classList.remove('active');if(cb)cb();},1200);
 }
-function spawnPt(idx,text){
+function spawnPt(idx,text,color){
   const t=tile(idx);if(!t)return;
   const r=t.getBoundingClientRect();
   const p=document.createElement('div');p.className='float-particle';p.textContent=text;
+  if(color)p.style.color=color;
   p.style.left=(r.left+r.width/2-16)+'px';p.style.top=r.top+'px';
   document.body.appendChild(p);setTimeout(()=>p.remove(),950);
 }

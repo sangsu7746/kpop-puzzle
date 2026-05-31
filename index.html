@@ -810,6 +810,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
       <span data-i18n="settings_sound" style="font-size:0.9rem; color:rgba(255,255,255,0.9);">음향 (Sound)</span>
       <button class="btn btn-secondary" id="settingsSoundToggle" style="padding:6px 16px; font-size:0.8rem; min-width:80px;" onclick="SND.toggle(); document.getElementById('settingsSoundToggle').textContent = SND.muted ? 'OFF' : 'ON';">ON</button>
     </div>
+    <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:0.9rem; color:rgba(255,255,255,0.9);">📳 진동 (Vibration)</span>
+      <button class="btn btn-secondary" id="settingsVibToggle" style="padding:6px 16px; font-size:0.8rem; min-width:80px;" onclick="VIB.toggle(); document.getElementById('settingsVibToggle').textContent = VIB.off ? 'OFF' : 'ON';">ON</button>
+    </div>
     
     <div class="settings-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
       <span data-i18n="settings_lang" style="font-size:0.9rem; color:rgba(255,255,255,0.9);">언어 (Language)</span>
@@ -1555,6 +1559,7 @@ let previousScreenBeforeLang = null;
 function openSettings() {
   document.getElementById('settingsModal').style.display = 'flex';
   document.getElementById('settingsSoundToggle').textContent = SND.muted ? 'OFF' : 'ON';
+  document.getElementById('settingsVibToggle').textContent = VIB.off ? 'OFF' : 'ON';
 }
 
 function closeSettings() {
@@ -1950,9 +1955,9 @@ function onDanceTap(idx){
     P.score+=pts;P.maxScore+=200;P.hitTime=Date.now();
     updScore();beatFill(P.playerSeq.length,P.seq.length);
     orangeFlash();spawnPt(idx,'+'+pts);
-    if(P.combo>=3)showCombo(P.combo);
+    if(P.combo>=3){showCombo(P.combo);VIB.combo(P.combo);}
     if(P.pathActive)updatePathNums();
-    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;P.roundTimeout=setTimeout(nextRound,500);}
+    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;VIB.roundDone();P.roundTimeout=setTimeout(nextRound,500);}
   } else {
     tileClass(idx,'wrong');SND.wrong();
     if(P.eraseReady){
@@ -1972,7 +1977,7 @@ function onDanceTap(idx){
       beatFill(P.playerSeq.length,P.seq.length);
       if(P.pathActive)updatePathNums();
     } else {
-      P.combo=0;showMsg('MISS');
+      P.combo=0;showMsg('MISS');VIB.miss();
       clearTimeout(P.watchHandle);
       P.roundTimeout=setTimeout(()=>{clearTiles();watchPhase();},750);
     }
@@ -2019,9 +2024,9 @@ function onVocalTap(idx){
     P.score+=pts;P.maxScore+=220;P.hitTime=Date.now();
     updScore();beatFill(P.playerSeq.length,P.seq.length);
     orangeFlash();spawnPt(idx,'+'+pts);
-    if(P.combo>=3)showCombo(P.combo);
+    if(P.combo>=3){showCombo(P.combo);VIB.combo(P.combo);}
     if(P.pathActive)updatePathNums();
-    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;P.roundTimeout=setTimeout(nextRound,500);}
+    if(P.playerSeq.length===P.seq.length){setDot(P.round,'done');P.round++;VIB.roundDone();P.roundTimeout=setTimeout(nextRound,500);}
   } else {
     tileClass(idx,'wrong');SND.wrong();
     if(P.eraseReady){
@@ -2041,7 +2046,7 @@ function onVocalTap(idx){
       beatFill(P.playerSeq.length,P.seq.length);
       if(P.pathActive)updatePathNums();
     } else {
-      P.combo=0;showMsg('MISS');
+      P.combo=0;showMsg('MISS');VIB.miss();
       clearTimeout(P.watchHandle);
       P.roundTimeout=setTimeout(()=>{clearTiles();listenPhase();},750);
     }
@@ -2099,7 +2104,7 @@ function onRapperTap(idx){
     P.score+=pts;
     tileClass(idx,'correct');SND.rapperHit();orangeFlash();spawnPt(idx,'+'+pts);
     updScore();markBeat(P.beatsDone-1,'hit');
-    if(P.combo>=3)showCombo(P.combo);
+    if(P.combo>=3){showCombo(P.combo);VIB.combo(P.combo);}
     rapperNextBeat();
   } else {
     tileClass(idx,'wrong');
@@ -2125,7 +2130,7 @@ function rapperMiss(){
   }
   // 일반 미스: 같은 비트를 다시 표시 (자동 진행 없음)
   P.combo=0;showMsg('MISS!');
-  SND.wrong();
+  SND.wrong();VIB.miss();
   unlit(P.currentTile);tileClass(P.currentTile,'wrong');
   markBeat(P.beatsDone-1,'miss');
   P.beatTimeout=setTimeout(()=>{
@@ -2196,6 +2201,8 @@ function showResult(stars,newItem,isNewRecord,droppedItem,earnedCoins){
   goTo('result');
   BGM.stop();
   if(stars>0) setTimeout(()=>SND.starFanfare(stars), 200);
+  if(stars===3) setTimeout(()=>VIB.perfect(), 300);
+  if(isNewRecord && P.score>0) setTimeout(()=>VIB.newRecord(), 700);
   document.getElementById('resultIdol').innerHTML=charPortraitHTML(S.character||'girl',80);
   document.getElementById('resultTitle').textContent=
     t(stars===3?'result_perfect':stars===2?'result_great':stars===1?'result_good':'result_fail');
@@ -3237,6 +3244,49 @@ function resetProgress(){
   S.collection[g]=[null,null,null,null,null];
   save();renderStages();
 }
+
+// ═══════════════════════════════════════════════
+// VIBRATION ENGINE
+// ═══════════════════════════════════════════════
+const VIB = {
+  off: false,
+  _ok: ('vibrate' in navigator),
+
+  toggle(){ this.off=!this.off; },
+
+  // 콤보 단계별 진동 (콤보 3+부터)
+  combo(n){
+    if(this.off||!this._ok) return;
+    if(n<3) return;
+    if(n<=5)       navigator.vibrate(25);
+    else if(n<=9)  navigator.vibrate(35);
+    else           navigator.vibrate([20,10,20]);
+  },
+
+  // MISS
+  miss(){
+    if(this.off||!this._ok) return;
+    navigator.vibrate(80);
+  },
+
+  // 라운드 완료
+  roundDone(){
+    if(this.off||!this._ok) return;
+    navigator.vibrate([40,30,60]);
+  },
+
+  // 별 3개 퍼펙트
+  perfect(){
+    if(this.off||!this._ok) return;
+    navigator.vibrate([50,50,100]);
+  },
+
+  // NEW RECORD
+  newRecord(){
+    if(this.off||!this._ok) return;
+    navigator.vibrate([30,20,30,20,30]);
+  }
+};
 
 // ═══════════════════════════════════════════════
 // SOUND ENGINE  (Web Audio API)

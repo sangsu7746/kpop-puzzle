@@ -467,6 +467,42 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
 /* 구버전 col-item 호환 (삭제 방지) */
 .col-item{display:none}
 
+/* ── 포토카드 상세 모달 ── */
+.card-modal-overlay{
+  position:fixed;inset:0;z-index:600;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px)}
+.card-modal-overlay.active{display:flex}
+.card-modal{
+  position:relative;width:88%;max-width:300px;
+  background:linear-gradient(170deg,#0d1e3a,#061022);
+  border-radius:16px;padding:18px 18px 20px;
+  border:1px solid rgba(255,255,255,.12);
+  animation:slide-up .28s cubic-bezier(.34,1.2,.64,1)}
+.card-modal-close{
+  position:absolute;top:10px;right:10px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.7);width:30px;height:30px;border-radius:50%;
+  cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;
+  transition:all .15s}
+.card-modal-close:hover{background:rgba(255,255,255,.18);color:#fff}
+.card-modal-portrait{
+  width:100%;aspect-ratio:3/4;border-radius:10px;margin-bottom:12px;
+  background-size:cover;background-position:center top;position:relative;
+  border:2px solid rgba(255,255,255,.1);overflow:hidden;
+  transition:background-image .3s}
+.card-modal-portrait.gN {border-color:#555}
+.card-modal-portrait.gR {border-color:#3b82f6;box-shadow:0 0 14px rgba(59,130,246,.5)}
+.card-modal-portrait.gSR{border-color:#a855f7;box-shadow:0 0 18px rgba(168,85,247,.6)}
+.card-modal-portrait.gUR{border-color:#FFD700;animation:ur-pulse 2s ease-in-out infinite}
+.card-modal-info{text-align:center;margin-bottom:14px}
+.card-modal-stage{font-size:.72rem;color:rgba(255,255,255,.45);margin-bottom:3px;letter-spacing:.5px}
+.card-modal-stars{font-size:1.1rem;color:var(--gold);letter-spacing:3px;margin-bottom:3px}
+.card-modal-item{font-size:.82rem;color:rgba(255,255,255,.7)}
+.card-modal-btns{display:flex;gap:8px}
+.card-modal-btns .btn{flex:1;font-size:.8rem;padding:9px 6px}
+.btn-card-active{background:rgba(0,255,255,.15)!important;border-color:var(--cyan)!important;color:var(--cyan)!important}
+
 /* Particles & misc */
 .float-particle{position:fixed;pointer-events:none;z-index:999;
   font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--orange);
@@ -1070,6 +1106,25 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:#fff;
 
 </div>
 
+<!-- CARD DETAIL MODAL -->
+<div class="card-modal-overlay" id="cardModal" onclick="closeCardModal(event)">
+  <div class="card-modal" onclick="event.stopPropagation()">
+    <button class="card-modal-close" onclick="closeCardModal()">✕</button>
+    <div class="card-modal-portrait" id="cardModalPortrait">
+      <div class="card-grade-badge" id="cardModalGrade"></div>
+    </div>
+    <div class="card-modal-info">
+      <div class="card-modal-stage" id="cardModalStage"></div>
+      <div class="card-modal-stars" id="cardModalStars"></div>
+      <div class="card-modal-item"  id="cardModalItem"></div>
+    </div>
+    <div class="card-modal-btns">
+      <button class="btn btn-ghost" id="btnCardImg"  onclick="setCardView('original')">🖼 카드 이미지</button>
+      <button class="btn btn-ghost" id="btnCardChar" onclick="setCardView('character')">👤 내 캐릭터</button>
+    </div>
+  </div>
+</div>
+
 <!-- RENAME MODAL -->
 <div id="renameModal" style="display:none" class="item-equip-overlay">
     <div class="ie-title" data-i18n="rename_title">✏️ 아이돌 이름 변경</div>
@@ -1625,7 +1680,8 @@ let S = {
   activeSlot:null,
   unlimitedExp:0,
   coins:0,
-  lang:null
+  lang:null,
+  cardCustomized:{}
 };
 function genStars(g){return S.stageStars[g].reduce((a,b)=>a+b,0)}
 function genScore(g){return S.stageScores[g].reduce((a,b)=>a+b,0)}
@@ -1635,7 +1691,8 @@ function save(){
     character:S.character, genre:S.genre, idolName:S.idolName,
     stageStars:S.stageStars, stageScores:S.stageScores, collection:S.collection,
     items:S.items, equippedItem:S.equippedItem, activeSlot:S.activeSlot,
-    unlimitedExp:S.unlimitedExp, coins:S.coins, lang:S.lang
+    unlimitedExp:S.unlimitedExp, coins:S.coins, lang:S.lang,
+    cardCustomized:S.cardCustomized
   }))}catch(e){}
 }
 function load(){
@@ -1650,9 +1707,10 @@ function load(){
     S.items        = {...DEFAULT_ITEMS(), ...(d.items||{})};
     S.equippedItem = d.equippedItem || null;
     S.activeSlot   = d.activeSlot   || null;
-    S.unlimitedExp = d.unlimitedExp || 0;
-    S.coins        = d.coins        || 0;
-    S.lang         = d.lang         || null;
+    S.unlimitedExp   = d.unlimitedExp   || 0;
+    S.coins          = d.coins          || 0;
+    S.lang           = d.lang           || null;
+    S.cardCustomized = d.cardCustomized || {};
     if(S.lang) currentLang=S.lang;
     // 마이그레이션 v5 -> v6
     if(!localStorage.getItem('kidol_v6') && localStorage.getItem('kidol_v5')) {
@@ -2594,17 +2652,21 @@ function renderCollection(){
         imgNum = (globalIdx % 12) + 1; // 1 ~ 12
       }
       const bgImg = `images/card-${ch}-${imgNum}.png`;
-      
+      const isCustom = !!(S.cardCustomized && S.cardCustomized[colFilter+'_'+idx]);
+      const displayImg = isCustom ? `images/characters-${ch}.png` : bgImg;
+
       el.className=`photo-card ${colFilter} g${card.grade}`;
       el.innerHTML=`
         <div class="card-grade-badge">${card.grade}</div>
-        <div class="card-portrait" style="background-image:url('${bgImg}')"></div>
+        ${isCustom?'<div style="position:absolute;top:5px;left:5px;font-size:.65rem;background:rgba(0,255,255,.2);border:1px solid var(--cyan);border-radius:8px;padding:1px 5px;color:var(--cyan)">👤</div>':''}
+        <div class="card-portrait" style="background-image:url('${displayImg}')"></div>
         <div class="card-info">
           <div class="card-stage-nm">${stg.name}</div>
           <div class="card-stars-row">${stars}</div>
           <div class="card-item-nm">${t('item_'+item.id+'_name')}</div>
         </div>
         <div class="card-upg-bar"><div class="card-upg-fill"></div></div>`;
+      el.onclick=()=>openCardModal(colFilter,idx,card,t('item_'+item.id+'_name'),stg.name);
     } else {
       // 잠긴 카드
       const hint = idx===0 ? t('col_hint_first') : t('col_hint_need',{n:stg.need});
@@ -3072,6 +3134,64 @@ function useRename(){
 }
 function closeRenameModal(){
   document.getElementById('renameModal').style.display='none';
+}
+
+// ── 포토카드 상세 모달 ────────────────────────
+let _cardModal={genre:null,idx:null,bgImg:null,charImg:null};
+
+function openCardModal(genre,idx,card,itemName,stgName){
+  const ch=S.character||'girl';
+  const genres=['dance','vocal','rapper'];
+  const gIdx=genres.indexOf(genre);
+  const globalIdx=gIdx*5+idx;
+  let imgNum;
+  if(ch==='boy'){
+    const boyMap=[1,2,3,4,5,6,7,8,9,10,12,1,2,3,4];
+    imgNum=boyMap[globalIdx];
+  } else {
+    imgNum=(globalIdx%12)+1;
+  }
+  const bgImg=`images/card-${ch}-${imgNum}.png`;
+  const charImg=`images/characters-${ch}.png`;
+  _cardModal={genre,idx,bgImg,charImg};
+
+  const isCustom=!!(S.cardCustomized&&S.cardCustomized[genre+'_'+idx]);
+  const portrait=document.getElementById('cardModalPortrait');
+  portrait.style.backgroundImage=`url('${isCustom?charImg:bgImg}')`;
+  portrait.className=`card-modal-portrait g${card.grade}`;
+
+  document.getElementById('cardModalGrade').textContent=card.grade;
+  const gradeCls={N:'#444',R:'rgba(59,130,246,.85)',SR:'rgba(168,85,247,.85)',UR:'linear-gradient(90deg,#FFD700,#FF6B00)'};
+  document.getElementById('cardModalGrade').style.background=gradeCls[card.grade]||'#444';
+
+  document.getElementById('cardModalStage').textContent=stgName;
+  document.getElementById('cardModalStars').textContent='★'.repeat(card.stars)+'☆'.repeat(3-card.stars);
+  document.getElementById('cardModalItem').textContent=itemName;
+  _updateCardModalBtns(isCustom);
+  document.getElementById('cardModal').classList.add('active');
+}
+
+function _updateCardModalBtns(isCustom){
+  document.getElementById('btnCardImg').className ='btn btn-ghost'+(isCustom?'':' btn-card-active');
+  document.getElementById('btnCardChar').className='btn btn-ghost'+(isCustom?' btn-card-active':'');
+}
+
+function setCardView(type){
+  const {genre,idx,bgImg,charImg}=_cardModal;
+  const isCustom=type==='character';
+  if(!S.cardCustomized)S.cardCustomized={};
+  const key=genre+'_'+idx;
+  if(isCustom) S.cardCustomized[key]=true;
+  else delete S.cardCustomized[key];
+  save();
+  document.getElementById('cardModalPortrait').style.backgroundImage=`url('${isCustom?charImg:bgImg}')`;
+  _updateCardModalBtns(isCustom);
+  renderCollection();
+}
+
+function closeCardModal(e){
+  if(e&&e.target!==document.getElementById('cardModal'))return;
+  document.getElementById('cardModal').classList.remove('active');
 }
 function confirmRename(){
   const raw=(document.getElementById('renameInput').value||'').trim();

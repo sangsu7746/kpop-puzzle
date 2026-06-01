@@ -3552,9 +3552,11 @@ function makeBgStars(){
   const app     = document.getElementById('app');
 
   function checkOrientation(){
+    const isTouch = window.matchMedia('(pointer:coarse) and (hover:none)').matches;
     const isLandscape = window.innerWidth > window.innerHeight;
-    if(overlay) overlay.style.display = isLandscape ? 'flex' : 'none';
-    if(app)     app.style.display     = isLandscape ? 'none' : '';
+    const showOverlay = isTouch && isLandscape;
+    if(overlay) overlay.style.display = showOverlay ? 'flex' : 'none';
+    if(app)     app.style.display     = showOverlay ? 'none' : '';
   }
 
   // 초기 체크

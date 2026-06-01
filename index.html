@@ -29,10 +29,6 @@ html{height:100%;height:100dvh}
 @keyframes rotate-hint{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-90deg)}}
 .rotate-msg{font-family:'Noto Sans KR',sans-serif;font-size:1rem;
   color:rgba(255,255,255,.85);line-height:1.7;letter-spacing:.5px}
-@media (orientation:landscape) and (pointer:coarse) and (hover:none){
-  .rotate-overlay{display:flex}
-  #app{display:none}
-}
 :root{
   --navy:#0A1931;--navy2:#061022;--navy3:#0d1f40;
   --orange:#FF6B00;--cyan:#00FFFF;--gold:#FFD700;--gray:#CCCCCC;
@@ -3551,10 +3547,11 @@ function makeBgStars(){
   const overlay = document.querySelector('.rotate-overlay');
   const app     = document.getElementById('app');
 
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
   function checkOrientation(){
-    const isTouch = window.matchMedia('(pointer:coarse) and (hover:none)').matches;
     const isLandscape = window.innerWidth > window.innerHeight;
-    const showOverlay = isTouch && isLandscape;
+    const showOverlay = isMobile && isLandscape;
     if(overlay) overlay.style.display = showOverlay ? 'flex' : 'none';
     if(app)     app.style.display     = showOverlay ? 'none' : '';
   }
